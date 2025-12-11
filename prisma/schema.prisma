@@ -1,0 +1,153 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// --- ACL SYSTEM (RBAC) ---
+
+model User {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  password  String
+  name      String
+  
+  roleId    String
+  role      Role     @relation(fields: [roleId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Role {
+  id          String       @id @default(uuid())
+  name        String       @unique
+  description String?
+  users       User[]
+  permissions Permission[] 
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Permission {
+  id          String   @id @default(uuid())
+  action      String   @unique 
+  description String?
+  roles       Role[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// --- DATA MODULES ---
+
+enum StudentStatus {
+  ACTIVE
+  ALUMNI_GRADUATED
+  ALUMNI_DROPOUT
+}
+
+model Student {
+  id              String   @id @default(uuid())
+  nis             String   @unique
+  sigapId         String? 
+  name            String
+  activeDormitory String  
+  dormitoryRoom   String? 
+  formalClass     String?
+  placeOfBirth    String? 
+  dateOfBirth     String? 
+  address         String? 
+  parentPhone     String?
+  fatherName      String?
+  motherName      String?
+  
+  photo           String?       
+  status          StudentStatus @default(ACTIVE)
+  graduationYear  Int?          
+  entryYear       Int           
+  
+  achievements    Achievement[] 
+  works           Work[]        
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Organization {
+  id          String   @id @default(uuid())
+  name        String   
+  logo        String?  
+  description String   
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Leader {
+  id          String   @id @default(uuid())
+  name        String
+  periodStart Int      
+  periodEnd   Int?     
+  photo       String?  
+  bio         String   
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Post {
+  id          String   @id @default(uuid())
+  title       String
+  slug        String   @unique
+  content     String   
+  thumbnail   String?  
+  type        String   
+  published   Boolean  @default(false)
+  authorId    String?  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Gallery {
+  id          String   @id @default(uuid())
+  title       String   
+  description String?
+  date        DateTime @default(now())
+  items       GalleryItem[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model GalleryItem {
+  id          String   @id @default(uuid())
+  galleryId   String
+  gallery     Gallery  @relation(fields: [galleryId], references: [id], onDelete: Cascade)
+  type        String   
+  url         String   
+  createdAt   DateTime @default(now())
+}
+
+model Achievement {
+  id          String   @id @default(uuid())
+  studentId   String
+  student     Student  @relation(fields: [studentId], references: [id])
+  title       String   
+  level       String   
+  year        Int
+  photo       String?  
+  createdAt   DateTime @default(now())
+}
+
+model Work {
+  id          String   @id @default(uuid())
+  studentId   String
+  student     Student  @relation(fields: [studentId], references: [id])
+  title       String
+  type        String   
+  fileUrl     String?  
+  createdAt   DateTime @default(now())
+}

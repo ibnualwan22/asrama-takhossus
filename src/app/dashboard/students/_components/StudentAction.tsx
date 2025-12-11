@@ -1,0 +1,107 @@
+'use client'
+
+import { useState, useActionState, useEffect } from 'react'
+import { MoreVertical, GraduationCap, XCircle, AlertTriangle } from 'lucide-react'
+import { mutateStudent } from '@/app/actions/student-mutation'
+
+export default function StudentAction({ student }: { student: any }) {
+  const [isOpen, setIsOpen] = useState(false) // Untuk Dropdown
+  const [modalOpen, setModalOpen] = useState(false) // Untuk Modal
+  
+  // State untuk Action
+  const [state, formAction, isPending] = useActionState(mutateStudent, null)
+
+  // Tutup modal kalau sukses
+  useEffect(() => {
+    if (state?.success) {
+      setModalOpen(false)
+      setIsOpen(false)
+    }
+  }, [state])
+
+  // Toggle Dropdown
+  const toggleDropdown = () => setIsOpen(!isOpen)
+
+  return (
+    <div className="relative">
+      {/* 1. Tombol Titik Tiga */}
+      <button onClick={toggleDropdown} className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500">
+        <MoreVertical size={18} />
+      </button>
+
+      {/* 2. Dropdown Menu */}
+      {isOpen && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} />
+          <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-100 z-20 overflow-hidden">
+            <button 
+              onClick={() => setModalOpen(true)}
+              className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 font-bold flex items-center gap-2"
+            >
+              <XCircle size={16} />
+              Non-aktifkan / Alumni
+            </button>
+            {/* Bisa tambah tombol Edit manual disini nanti */}
+          </div>
+        </>
+      )}
+
+      {/* 3. Modal Mutasi */}
+      {modalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden p-6">
+            <div className="flex items-center gap-3 mb-4 text-yellow-600">
+              <AlertTriangle size={24} />
+              <h3 className="text-lg font-extrabold text-gray-900">Konfirmasi Status</h3>
+            </div>
+            
+            <p className="text-gray-600 mb-6 text-sm">
+              Anda akan menonaktifkan santri <strong>{student.name}</strong>. 
+              Silakan pilih status akhir santri ini:
+            </p>
+
+            <form action={formAction} className="space-y-4">
+              <input type="hidden" name="studentId" value={student.id} />
+              
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Status Akhir</label>
+                <select name="statusType" className="w-full p-2 border rounded-lg font-medium" required>
+                  <option value="GRADUATED">Lulus (Mutakhorijin)</option>
+                  <option value="DROPOUT">Boyong / Berhenti</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Tahun Lulus / Keluar</label>
+                <input 
+                  type="number" 
+                  name="graduationYear" 
+                  defaultValue={new Date().getFullYear()}
+                  className="w-full p-2 border rounded-lg font-medium" 
+                />
+                <p className="text-xs text-gray-400 mt-1">*Jika lulus, ini akan jadi angkatan mutakhorijin.</p>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button 
+                  type="button" 
+                  onClick={() => setModalOpen(false)}
+                  className="flex-1 py-2 bg-gray-100 text-gray-700 font-bold rounded-lg hover:bg-gray-200"
+                >
+                  Batal
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={isPending}
+                  className="flex-1 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 disabled:bg-red-300"
+                >
+                  {isPending ? 'Menyimpan...' : 'Simpan Status'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
