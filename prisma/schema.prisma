@@ -46,9 +46,10 @@ model Permission {
 // --- DATA MODULES ---
 
 enum StudentStatus {
-  ACTIVE
-  ALUMNI_GRADUATED
-  ALUMNI_DROPOUT
+  ACTIVE            // Santri Aktif Belajar
+  MUTAKHORIJIN      // Lulus Akademik, tapi belum Boyong (Baru)
+  ALUMNI_GRADUATED  // Sudah Boyong (Lulusan)
+  ALUMNI_DROPOUT    // Sudah Boyong (Berhenti Tengah Jalan)
 }
 
 model Student {
@@ -70,6 +71,7 @@ model Student {
   status          StudentStatus @default(ACTIVE)
   graduationYear  Int?          
   entryYear       Int           
+  mutakhorijinBatch Int?
   
   achievements    Achievement[] 
   works           Work[]        

@@ -4,6 +4,7 @@ import { getStudents } from "@/app/actions/student"
 import SyncButton from "./_components/SyncButton"
 import { Search } from "lucide-react"
 import StudentAction from "./_components/StudentAction"
+import StudentDetailModal from "./_components/StudentDetailModal"
 
 export default async function StudentsPage({
   searchParams,
@@ -11,16 +12,16 @@ export default async function StudentsPage({
   searchParams: { query?: string; page?: string }
 }) {
   const session = await auth()
-  
-  // Ambil parameter URL untuk search & pagination
-  // Note: di Next.js 15, searchParams mungkin perlu diawait, tapi di 15.0.3 basic object
   const params = await searchParams 
   const query = params?.query || ''
   const currentPage = Number(params?.page) || 1
+  const pageSize = 20 // Pastikan ini sama dengan di server action
 
-  // Fetch data dari database lokal
+  // Hitung Offset untuk Nomor Urut
+  // Rumus: (Halaman - 1) * JumlahPerHalaman
+  const numberOffset = (currentPage - 1) * pageSize
+
   const { data: students, total, totalPages } = await getStudents(query, currentPage)
-
   return (
     <div className="space-y-6">
       {/* Header & Controls */}
@@ -55,40 +56,48 @@ export default async function StudentsPage({
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead className="bg-gray-900 text-white">
-               <tr>
+              <tr>
+                {/* 1. KOLOM NOMOR */}
+                <th className="px-4 py-4 font-bold text-center w-16">No</th>
+                
                 <th className="px-6 py-4 font-bold">Santri</th>
                 <th className="px-6 py-4 font-bold">Kamar/Kelas</th>
                 <th className="px-6 py-4 font-bold">TTL</th>
                 <th className="px-6 py-4 font-bold">Wali</th>
                 <th className="px-6 py-4 font-bold">Angkatan</th>
-                <th className="px-6 py-4 font-bold">Status</th>
-                <th className="px-6 py-4 font-bold text-right">Aksi</th> {/* Tambah Header Ini */}
+                <th className="px-6 py-4 font-bold text-right">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {students.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-10 text-center text-gray-500 italic">
+                  <td colSpan={7} className="px-6 py-10 text-center text-gray-500 italic">
                     Belum ada data. Silakan tekan tombol Sync Data SIGAP.
                   </td>
                 </tr>
               ) : (
-                students.map((student) => (
+                students.map((student, index) => (
                   <tr key={student.id} className="hover:bg-blue-50 transition-colors">
+                    
+                    {/* 2. ISI KOLOM NOMOR (Offset + Index + 1) */}
+                    <td className="px-4 py-4 text-center font-bold text-gray-500">
+                      {numberOffset + index + 1}
+                    </td>
+
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
+                        <div className="h-10 w-10 rounded-full bg-gray-200 overflow-hidden flex-shrink-0 border border-gray-300">
                           {student.photo ? (
                             <img src={student.photo} alt={student.name} className="h-full w-full object-cover" />
                           ) : (
-                            <div className="h-full w-full flex items-center justify-center text-gray-500 font-bold text-xs">
-                              FOTO
+                            <div className="h-full w-full flex items-center justify-center text-gray-400 font-bold text-[10px] text-center p-1">
+                              NO FOTO
                             </div>
                           )}
                         </div>
                         <div>
                           <p className="font-extrabold text-gray-900">{student.name}</p>
-                          <p className="text-xs text-blue-600 font-mono font-bold">{student.parentPhone}</p>
+                          <p className="text-xs text-blue-600 font-mono font-bold">{student.nis}</p>
                         </div>
                       </div>
                     </td>
@@ -97,30 +106,31 @@ export default async function StudentsPage({
                       <p className="text-xs text-gray-500">{student.dormitoryRoom} - {student.formalClass}</p>
                     </td>
                     <td className="px-6 py-4 text-gray-600">
-                      <p className="font-medium">{student.placeOfBirth}</p>
-                      <p className="text-xs text-gray-500">{student.dateOfBirth}</p>
+                      <p className="font-medium">{student.placeOfBirth || '-'}</p>
+                      <p className="text-xs text-gray-500">{student.dateOfBirth || '-'}</p>
                     </td>
                     <td className="px-6 py-4 text-gray-600">
-                      <p className="font-bold text-xs uppercase">{student.fatherName}</p>
-                      <p className="text-xs text-gray-500">{student.address}</p>
+                      <p className="font-bold text-xs uppercase">{student.fatherName || '-'}</p>
+                      <p className="text-xs text-gray-500">{student.address || '-'}</p>
                     </td>
                     <td className="px-6 py-4 font-bold text-gray-800">
                       {student.entryYear}
                     </td>
-                    <td className="px-6 py-4">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-800 border border-green-200">
-                        Aktif
-                      </span>
-                    </td>
+
+                    {/* 3. KOLOM AKSI (Tombol Detail & Tombol Mutasi) */}
                     <td className="px-6 py-4 text-right">
-                      <StudentAction student={student} />
+                      <div className="flex items-center justify-end gap-2">
+                        {/* Tombol Detail & Upload Foto */}
+                        <StudentDetailModal student={student} />
+                        
+                        {/* Tombol Mutasi (Titik Tiga) */}
+                        <StudentAction student={student} />
+                      </div>
                     </td>
                   </tr>
-                  
                 ))
               )}
             </tbody>
-            
           </table>
         </div>
       </div>

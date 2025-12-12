@@ -38,54 +38,54 @@ export default async function AlumniPage({
             <thead className="bg-gray-900 text-white">
               <tr>
                 <th className="px-6 py-4 font-bold">Nama Alumni</th>
-                <th className="px-6 py-4 font-bold">Angkatan Masuk</th>
-                {/* Judul Kolom Disesuaikan */}
-                <th className="px-6 py-4 font-bold">Keterangan Lulus/Keluar</th> 
-                <th className="px-6 py-4 font-bold">Domisili</th>
+                <th className="px-6 py-4 font-bold text-center">Tahun Masuk</th>
+                <th className="px-6 py-4 font-bold text-center">Tahun Keluar</th>
+                <th className="px-6 py-4 font-bold text-center">Angkatan Mutakhorijin</th>
                 <th className="px-6 py-4 font-bold">Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {alumni.length === 0 ? (
-                <tr><td colSpan={5} className="p-8 text-center text-gray-500">Belum ada data alumni.</td></tr>
-              ) : (
-                alumni.map((item) => (
-                  <tr key={item.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 font-bold text-gray-900">{item.name}</td>
-                    <td className="px-6 py-4 text-gray-600">
-                      {item.entryYear} <span className="text-xs text-gray-400">(A-{item.entryYear?.toString().slice(-2)})</span>
-                    </td>
-                    
-                    {/* LOGIKA TAMPILAN BARU */}
-                    <td className="px-6 py-4">
-                      {item.status === 'ALUMNI_GRADUATED' ? (
-                        <div>
-                          <p className="font-bold text-indigo-700">Angkatan ke-{item.graduationYear}</p>
-                          <p className="text-xs text-gray-500">Mutakhorijin</p>
-                        </div>
-                      ) : (
-                        <div>
-                          <p className="font-bold text-gray-700">Tahun {item.graduationYear}</p>
-                          <p className="text-xs text-gray-500">Berhenti/Boyong</p>
-                        </div>
-                      )}
-                    </td>
+              {alumni.map((item) => (
+                <tr key={item.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 font-bold text-gray-900">
+                    {item.name}
+                    <div className="text-xs text-gray-500 font-normal">{item.address}</div>
+                  </td>
+                  
+                  {/* 1. TAHUN MASUK */}
+                  <td className="px-6 py-4 text-center text-gray-600">
+                    {item.entryYear}
+                  </td>
+                  
+                  {/* 2. TAHUN KELUAR (graduationYear) */}
+                  <td className="px-6 py-4 text-center font-bold text-gray-800">
+                    {item.graduationYear || '-'}
+                  </td>
 
-                    <td className="px-6 py-4 text-gray-600">{item.address || '-'}</td>
-                    <td className="px-6 py-4">
-                      {item.status === 'ALUMNI_GRADUATED' ? (
-                        <span className="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-xs font-bold border border-indigo-200">
-                          Mutakhorijin
-                        </span>
-                      ) : (
-                        <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-bold border border-gray-200">
-                          Boyong
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                ))
-              )}
+                  {/* 3. ANGKATAN MUTAKHORIJIN */}
+                  <td className="px-6 py-4 text-center">
+                    {item.mutakhorijinBatch ? (
+                       <span className="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-xs font-bold">
+                         Ke-{item.mutakhorijinBatch}
+                       </span>
+                    ) : (
+                      <span className="text-gray-400">-</span>
+                    )}
+                  </td>
+
+                  <td className="px-6 py-4">
+                    {item.status === 'ALUMNI_GRADUATED' ? (
+                      <span className="text-green-600 font-bold text-xs bg-green-50 px-2 py-1 rounded border border-green-200">
+                        Lulusan
+                      </span>
+                    ) : (
+                      <span className="text-gray-500 font-bold text-xs bg-gray-50 px-2 py-1 rounded border border-gray-200">
+                        Boyong
+                      </span>
+                    )}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>

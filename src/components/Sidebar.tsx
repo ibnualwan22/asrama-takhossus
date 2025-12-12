@@ -14,6 +14,7 @@ const menuItems = [
   { name: 'Manajemen User', href: '/dashboard/users', icon: UserCheck },
   { name: 'Data Santri', href: '/dashboard/students', icon: Users },
   { name: 'Data Alumni', href: '/dashboard/alumni', icon: GraduationCap },
+  { name: 'Data Mutakhorijin ', href: '/dashboard/mutakhorijin', icon: GraduationCap },
   { name: 'Artikel & Konten', href: '/dashboard/posts', icon: Newspaper },
   { name: 'Galeri Kegiatan', href: '/dashboard/gallery', icon: ImageIcon },
   { name: 'Galeri Kegiatan', href: '/dashboard/achievements', icon: ImageIcon },

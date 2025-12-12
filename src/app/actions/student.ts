@@ -3,6 +3,7 @@
 
 import { PrismaClient, StudentStatus } from "@prisma/client"
 import { revalidatePath } from "next/cache"
+import { uploadImage } from "./upload"
 
 const prisma = new PrismaClient()
 
@@ -154,4 +155,49 @@ export async function getStudents(query: string = '', page: number = 1) {
   ])
 
   return { data, total, totalPages: Math.ceil(total / pageSize) }
+}
+
+export async function updateStudentPhoto(studentId: string, photoUrl: string) {
+  try {
+    await prisma.student.update({
+      where: { id: studentId },
+      data: { photo: photoUrl }
+    })
+    
+    revalidatePath('/dashboard/students')
+    return { success: true, message: 'Foto santri berhasil diperbarui!' }
+  } catch (error) {
+    console.error(error)
+    return { success: false, message: 'Gagal update foto.' }
+  }
+}
+export async function uploadStudentPhotoAction(prevState: any, formData: FormData) {
+  const studentId = formData.get('studentId') as string
+  const file = formData.get('file') as File
+
+  if (!studentId || !file) {
+    return { success: false, message: "Data tidak lengkap" }
+  }
+
+  try {
+    // 1. Upload ke Cloudinary (Server Side)
+    const uploadRes = await uploadImage(formData)
+
+    if (!uploadRes.success) {
+      return { success: false, message: uploadRes.message }
+    }
+
+    // 2. Update Database dengan URL baru
+    await prisma.student.update({
+      where: { id: studentId },
+      data: { photo: uploadRes.url }
+    })
+
+    revalidatePath('/dashboard/students')
+    return { success: true, message: "Foto berhasil diperbarui!" }
+
+  } catch (error) {
+    console.error(error)
+    return { success: false, message: "Terjadi kesalahan server" }
+  }
 }

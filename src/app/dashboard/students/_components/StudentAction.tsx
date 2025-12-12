@@ -61,26 +61,40 @@ export default function StudentAction({ student }: { student: any }) {
             </p>
 
             <form action={formAction} className="space-y-4">
-              <input type="hidden" name="studentId" value={student.id} />
-              
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">Status Akhir</label>
-                <select name="statusType" className="w-full p-2 border rounded-lg font-medium" required>
-                  <option value="GRADUATED">Lulus (Mutakhorijin)</option>
-                  <option value="DROPOUT">Boyong / Berhenti</option>
-                </select>
-              </div>
+  <input type="hidden" name="studentId" value={student.id} />
+  
+  <div>
+    <label className="block text-sm font-bold text-gray-700 mb-2">Pilih Aksi</label>
+    <select 
+      name="statusType" 
+      className="w-full p-2 border rounded-lg font-medium" 
+      required
+      onChange={(e) => {
+         // Ubah label secara dinamis via JS sederhana
+         const label = document.getElementById('numberLabel')
+         if(label) {
+           label.innerText = e.target.value === 'MUTAKHORIJIN' 
+             ? 'Angkatan Mutakhorijin Ke-' 
+             : 'Tahun Keluar / Boyong'
+         }
+      }}
+    >
+      <option value="MUTAKHORIJIN">Lulus (Pindah ke Mutakhorijin)</option>
+      <option value="DROPOUT">Boyong / Berhenti (Pindah ke Alumni)</option>
+    </select>
+  </div>
 
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">Tahun Lulus / Keluar</label>
-                <input 
-                  type="number" 
-                  name="graduationYear" 
-                  defaultValue={new Date().getFullYear()}
-                  className="w-full p-2 border rounded-lg font-medium" 
-                />
-                <p className="text-xs text-gray-400 mt-1">*Jika lulus, ini akan jadi angkatan mutakhorijin.</p>
-              </div>
+  <div>
+    <label id="numberLabel" className="block text-sm font-bold text-gray-700 mb-2">
+      Angkatan Mutakhorijin Ke-
+    </label>
+    <input 
+      type="number" 
+      name="inputNumber" // Nama field general, nanti di server dipilah
+      defaultValue={new Date().getFullYear()}
+      className="w-full p-2 border rounded-lg font-medium" 
+    />
+  </div>
 
               <div className="flex gap-3 pt-4">
                 <button 
