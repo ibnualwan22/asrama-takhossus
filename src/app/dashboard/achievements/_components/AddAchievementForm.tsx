@@ -90,6 +90,8 @@ export default function AddAchievementForm({ students }: { students: any[] }) {
                     <option value="Provinsi">Provinsi</option>
                     <option value="Nasional">Nasional</option>
                     <option value="Internasional">Internasional</option>
+                    <option value="Asrama">Asrama</option>
+                    <option value="Pondok">Pondok</option>
                   </select>
                 </div>
                 <div>
