@@ -135,8 +135,8 @@ model GalleryItem {
 
 model Achievement {
   id          String   @id @default(uuid())
-  studentId   String
-  student     Student  @relation(fields: [studentId], references: [id])
+  studentId   String?
+  student     Student?  @relation(fields: [studentId], references: [id])
   title       String   
   level       String   
   year        Int
