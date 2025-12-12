@@ -16,6 +16,11 @@ const menuItems = [
   { name: 'Data Alumni', href: '/dashboard/alumni', icon: GraduationCap },
   { name: 'Artikel & Konten', href: '/dashboard/posts', icon: Newspaper },
   { name: 'Galeri Kegiatan', href: '/dashboard/gallery', icon: ImageIcon },
+  { name: 'Galeri Kegiatan', href: '/dashboard/achievements', icon: ImageIcon },
+  { name: 'Galeri Kegiatan', href: '/dashboard/leaders', icon: ImageIcon },
+  { name: 'Galeri Kegiatan', href: '/dashboard/organization', icon: ImageIcon },
+  { name: 'Galeri Kegiatan', href: '/dashboard/roles', icon: ImageIcon },
+  { name: 'Galeri Kegiatan', href: '/dashboard/schedules', icon: ImageIcon },
 ]
 
 interface SidebarProps {

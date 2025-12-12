@@ -88,7 +88,7 @@ export default async function StudentsPage({
                         </div>
                         <div>
                           <p className="font-extrabold text-gray-900">{student.name}</p>
-                          <p className="text-xs text-blue-600 font-mono font-bold">{student.nis}</p>
+                          <p className="text-xs text-blue-600 font-mono font-bold">{student.parentPhone}</p>
                         </div>
                       </div>
                     </td>

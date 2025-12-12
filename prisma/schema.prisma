@@ -151,3 +151,11 @@ model Work {
   fileUrl     String?  
   createdAt   DateTime @default(now())
 }
+
+model DailySchedule {
+  id        String   @id @default(uuid())
+  startTime String   // Contoh: "03:30"
+  endTime   String   // Contoh: "04:30"
+  activity  String   // Contoh: "Qiyamul Lail"
+  createdAt DateTime @default(now())
+}
