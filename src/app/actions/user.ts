@@ -5,6 +5,7 @@ import { PrismaClient } from "@prisma/client"
 import bcrypt from "bcryptjs"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
+import { hasPermission } from "@/lib/auth-guard"
 
 const prisma = new PrismaClient()
 
@@ -74,10 +75,15 @@ export async function createUser(prevState: UserState, formData: FormData): Prom
 }
 
 export async function deleteUser(userId: string) {
-  try {
-    await prisma.user.delete({ where: { id: userId } })
-    revalidatePath('/dashboard/users')
-  } catch (e) {
-    console.error(e)
+  // 1. PASANG SATPAM DI SINI
+  const canDelete = await hasPermission("user.delete")
+  
+  if (!canDelete) {
+     // Jika dipanggil via form, ini akan gagal diam-diam atau throw error
+     throw new Error("ANDA TIDAK MEMILIKI IZIN UNTUK MENGHAPUS USER!")
   }
+
+  // 2. Lanjut proses hapus jika lolos
+  await prisma.user.delete({ where: { id: userId } })
+  revalidatePath('/dashboard/users')
 }

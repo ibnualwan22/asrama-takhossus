@@ -147,7 +147,7 @@ export default function StaffModal({ isOpen, onClose, candidates, existingData }
                     <Upload size={18} className="text-gray-500 mr-2" />
                     <span className="text-sm text-gray-600">Klik untuk upload foto baru</span>
                   </div>
-                  <input type="file" name="photo" accept="image/*" onChange={handleFileChange} className="hidden" />
+                  <input type="file" name="file" accept="image/*" onChange={handleFileChange} className="hidden" />
                 </label>
               </div>
               <p className="text-xs text-gray-500">*Kosongkan jika tidak ingin mengubah foto.</p>

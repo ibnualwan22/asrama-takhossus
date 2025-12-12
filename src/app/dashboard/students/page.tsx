@@ -2,9 +2,10 @@
 import { auth } from "@/auth"
 import { getStudents } from "@/app/actions/student"
 import SyncButton from "./_components/SyncButton"
-import { Search } from "lucide-react"
+import { Search, ShieldAlert } from "lucide-react" // Tambah icon ShieldAlert
 import StudentAction from "./_components/StudentAction"
 import StudentDetailModal from "./_components/StudentDetailModal"
+import { hasPermission } from "@/lib/auth-guard" // Import Helper Guard
 
 export default async function StudentsPage({
   searchParams,
@@ -12,16 +13,35 @@ export default async function StudentsPage({
   searchParams: { query?: string; page?: string }
 }) {
   const session = await auth()
+  
+  // 1. CEK PERMISSION: AKSES HALAMAN (READ)
+  // Pastikan di database tabel Permission ada data: action='student.read'
+  const canRead = await hasPermission("student.read")
+
+  if (!canRead) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[60vh] text-center p-6 bg-red-50 rounded-xl border border-red-200 m-6">
+        <ShieldAlert size={48} className="text-red-600 mb-4" />
+        <h1 className="text-2xl font-bold text-gray-900">Akses Ditolak</h1>
+        <p className="text-gray-600 mt-2">Anda tidak memiliki izin untuk melihat Data Santri.</p>
+      </div>
+    )
+  }
+
+  // 2. CEK PERMISSION: AKSI SPESIFIK
+  // Kita cek izin lain untuk mengontrol visibilitas tombol
+  const canSync = await hasPermission("student.create") // Izin untuk Sync/Tambah
+  const canManage = await hasPermission("student.update") // Izin untuk Edit/Mutasi
+
   const params = await searchParams 
   const query = params?.query || ''
   const currentPage = Number(params?.page) || 1
-  const pageSize = 20 // Pastikan ini sama dengan di server action
+  const pageSize = 20
 
-  // Hitung Offset untuk Nomor Urut
-  // Rumus: (Halaman - 1) * JumlahPerHalaman
   const numberOffset = (currentPage - 1) * pageSize
-
+  
   const { data: students, total, totalPages } = await getStudents(query, currentPage)
+  
   return (
     <div className="space-y-6">
       {/* Header & Controls */}
@@ -31,8 +51,10 @@ export default async function StudentsPage({
           <p className="text-gray-500 text-sm font-medium">Total: <span className="text-blue-600 font-bold">{total}</span> Santri Takhossus</p>
         </div>
         
-        {/* Tombol Sync - Hanya untuk role tertentu jika mau dibatasi */}
-        <SyncButton />
+        {/* Tombol Sync - HANYA MUNCUL JIKA PUNYA IZIN */}
+        {canSync && (
+           <SyncButton />
+        )}
       </div>
 
       {/* Search Bar */}
@@ -40,7 +62,6 @@ export default async function StudentsPage({
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
           <Search className="h-5 w-5 text-gray-400" />
         </div>
-        {/* Form Search Sederhana dengan Form Method GET */}
         <form className="w-full md:w-1/3">
           <input
             name="query"
@@ -57,9 +78,7 @@ export default async function StudentsPage({
           <table className="w-full text-left text-sm">
             <thead className="bg-gray-900 text-white">
               <tr>
-                {/* 1. KOLOM NOMOR */}
                 <th className="px-4 py-4 font-bold text-center w-16">No</th>
-                
                 <th className="px-6 py-4 font-bold">Santri</th>
                 <th className="px-6 py-4 font-bold">Kamar/Kelas</th>
                 <th className="px-6 py-4 font-bold">TTL</th>
@@ -79,7 +98,6 @@ export default async function StudentsPage({
                 students.map((student, index) => (
                   <tr key={student.id} className="hover:bg-blue-50 transition-colors">
                     
-                    {/* 2. ISI KOLOM NOMOR (Offset + Index + 1) */}
                     <td className="px-4 py-4 text-center font-bold text-gray-500">
                       {numberOffset + index + 1}
                     </td>
@@ -117,14 +135,15 @@ export default async function StudentsPage({
                       {student.entryYear}
                     </td>
 
-                    {/* 3. KOLOM AKSI (Tombol Detail & Tombol Mutasi) */}
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        {/* Tombol Detail & Upload Foto */}
+                        {/* Tombol Detail (Umumnya boleh dilihat jika bisa read) */}
                         <StudentDetailModal student={student} />
                         
-                        {/* Tombol Mutasi (Titik Tiga) */}
-                        <StudentAction student={student} />
+                        {/* Tombol Mutasi/Edit - HANYA JIKA PUNYA IZIN MANAGE/UPDATE */}
+                        {canManage && (
+                           <StudentAction student={student} />
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -135,7 +154,7 @@ export default async function StudentsPage({
         </div>
       </div>
       
-      {/* Pagination Sederhana (Next/Prev) */}
+      {/* Pagination */}
       <div className="flex justify-center gap-2">
          {currentPage > 1 && (
            <a href={`?page=${currentPage - 1}&query=${query}`} className="px-4 py-2 bg-white border rounded hover:bg-gray-50 font-bold">Prev</a>

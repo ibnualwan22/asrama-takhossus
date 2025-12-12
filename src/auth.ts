@@ -60,22 +60,22 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     signIn: '/login', // Halaman login custom kita
   },
   callbacks: {
-    // Memasukkan data role ke dalam Session Token
+    // 1. Saat JWT dibuat (Login berhasil)
     async jwt({ token, user }) {
       if (user) {
-        token.role = (user as any).role
-        token.id = user.id
+        token.username = (user as any).username // Simpan username ke token
+        token.role = (user as any).role // Simpan role juga biar gampang
       }
       return token
     },
+    // 2. Saat Session dibaca (Setiap reload halaman)
     async session({ session, token }) {
       if (session.user) {
-        (session.user as any).role = token.role;
-        (session.user as any).id = token.id;
+        // Pindahkan dari token ke session agar bisa dibaca di AuthGuard
+        (session.user as any).username = token.username;
+        (session.user as any).role = token.role; 
       }
       return session
-    },
-  },
-  session: { strategy: "jwt" },
-  secret: process.env.AUTH_SECRET,
+    }
+  }
 })

@@ -34,12 +34,6 @@ export default function DetailModal({ isOpen, onClose, data }: { isOpen: boolean
                      <span className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded font-bold">Manual Input</span>
                 )}
             </div>
-            
-            <div className="flex justify-between border-b pb-2">
-                <span className="text-gray-500 text-sm">Urutan Tampilan</span>
-                <span className="font-medium">#{data.order}</span>
-            </div>
-
             <div className="flex justify-between border-b pb-2">
                 <span className="text-gray-500 text-sm">Terdaftar Sejak</span>
                 <span className="font-medium text-sm">{new Date(data.createdAt).toLocaleDateString("id-ID")}</span>

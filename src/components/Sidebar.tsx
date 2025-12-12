@@ -1,102 +1,182 @@
 // src/components/Sidebar.tsx
-'use client'
+"use client"
 
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { 
-  LayoutDashboard, Users, GraduationCap, UserCheck, 
-  Newspaper, Image as ImageIcon, LogOut, X 
-} from 'lucide-react'
-import { signOut } from 'next-auth/react'
+import React, { Dispatch, SetStateAction, useState } from "react"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { signOut } from "next-auth/react"
+import {
+  LayoutDashboard,
+  Users,
+  User,
+  GraduationCap,
+  BookOpen,
+  ShieldCheck,
+  UserCog,
+  CalendarClock,
+  Building2,
+  LogOut,
+  Trophy,
+  Image as ImageIcon,
+  UserCheck
+} from "lucide-react"
 
-const menuItems = [
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Manajemen User', href: '/dashboard/users', icon: UserCheck },
-  { name: 'Data Santri', href: '/dashboard/students', icon: Users },
-  { name: 'Data Alumni', href: '/dashboard/alumni', icon: GraduationCap },
-  { name: 'Kepengurusan', href: '/dashboard/struktur', icon: GraduationCap },
-  { name: 'Data Mutakhorijin ', href: '/dashboard/mutakhorijin', icon: GraduationCap },
-  { name: 'Artikel & Konten', href: '/dashboard/posts', icon: Newspaper },
-  { name: 'Galeri Kegiatan', href: '/dashboard/gallery', icon: ImageIcon },
-  { name: 'Prestasi', href: '/dashboard/achievements', icon: ImageIcon },
-  { name: 'Kepala Daerah', href: '/dashboard/leaders', icon: ImageIcon },
-  { name: 'Organisasi', href: '/dashboard/organization', icon: ImageIcon },
-  { name: 'Manajemen Role', href: '/dashboard/roles', icon: ImageIcon },
-  { name: 'Jadwal Kegiatan', href: '/dashboard/schedules', icon: ImageIcon },
-]
+/**
+ * NOTE:
+ * lucide-react icon components accept props like:
+ *  React.SVGProps<SVGSVGElement> & { size?: string | number; strokeWidth?: number }
+ * So we type the icon accordingly to avoid TS incompatibility.
+ */
 
-interface SidebarProps {
-  userRole?: string
-  isOpen: boolean
-  setIsOpen: (val: boolean) => void
+type IconComponentProps = React.ComponentType<
+  React.SVGProps<SVGSVGElement> & { size?: string | number; className?: string }
+>
+
+type SidebarItem = {
+  label: string
+  href: string
+  icon: IconComponentProps
 }
 
-export default function Sidebar({ userRole, isOpen, setIsOpen }: SidebarProps) {
+type SidebarGroup = {
+  title: string
+  items: SidebarItem[]
+}
+
+const MENU_GROUPS: SidebarGroup[] = [
+  {
+    title: "Menu Utama",
+    items: [{ label: "Dashboard", href: "/dashboard", icon: LayoutDashboard }]
+  },
+  {
+    title: "Kesantrian",
+    items: [
+      { label: "Data Santri", href: "/dashboard/students", icon: Users },
+      { label: "Mutakhorijin", href: "/dashboard/mutakhorijin", icon: GraduationCap }
+    ]
+  },
+  {
+    title: "Keasramaan",
+    items: [
+      { label: "Struktur Pengurus", href: "/dashboard/struktur", icon: Users },
+      { label: "Karya Tulis", href: "/dashboard/karya", icon: BookOpen },
+      { label: "Organisasi", href: "/dashboard/organization", icon: Building2 },
+      { label: "Jadwal Kegiatan", href: "/dashboard/schedules", icon: CalendarClock },
+      { label: "Pimpinan / Leaders", href: "/dashboard/leaders", icon: UserCheck }
+    ]
+  },
+  {
+    title: "Konten",
+    items: [
+      { label: "Prestasi / Achievements", href: "/dashboard/achievements", icon: Trophy },
+      { label: "Alumni", href: "/dashboard/alumni", icon: GraduationCap },
+      { label: "Gallery", href: "/dashboard/gallery", icon: ImageIcon }
+    ]
+  },
+  {
+    title: "Sistem",
+    items: [
+      { label: "Manajemen User", href: "/dashboard/users", icon: UserCog },
+      { label: "Role & Akses", href: "/dashboard/roles", icon: ShieldCheck }
+    ]
+  }
+]
+
+export type SidebarProps = {
+  userRole?: string | null
+  isOpen?: boolean
+  setIsOpen?: Dispatch<SetStateAction<boolean>>
+}
+
+export default function Sidebar({ userRole, isOpen = false, setIsOpen }: SidebarProps) {
   const pathname = usePathname()
+  const [loadingSignOut, setLoadingSignOut] = useState(false)
+
+  async function handleSignOut() {
+    try {
+      setLoadingSignOut(true)
+      await signOut({ callbackUrl: "/login" })
+    } catch (err) {
+      console.error("Sign out failed:", err)
+      setLoadingSignOut(false)
+    }
+  }
+
+  const closeDrawer = () => {
+    if (setIsOpen) setIsOpen(false)
+  }
 
   return (
     <>
-      {/* 1. Backdrop Gelap (Hanya di Mobile) */}
-      <div 
-        className={`fixed inset-0 z-40 bg-gray-900/50 backdrop-blur-sm transition-opacity duration-300 md:hidden ${
-          isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        }`}
-        onClick={() => setIsOpen(false)}
+      {/* Mobile overlay */}
+      <div
+        className={`fixed inset-0 z-30 bg-black/40 transition-opacity md:hidden ${isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
+        onClick={closeDrawer}
+        aria-hidden={!isOpen}
       />
 
-      {/* 2. Sidebar Container */}
-      <aside className={`
-        fixed top-0 left-0 z-50 h-screen w-64 bg-gray-900 text-white transition-transform duration-300 ease-in-out
-        md:translate-x-0 
-        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-      `}>
-        
-        {/* Header Sidebar */}
-        <div className="flex h-16 items-center justify-between px-6 border-b border-gray-800">
-          <h1 className="text-xl font-extrabold tracking-wider text-yellow-500">
-            TAKHOSSUS
-          </h1>
-          {/* Tombol Close di Mobile */}
-          <button onClick={() => setIsOpen(false)} className="md:hidden text-gray-400 hover:text-white">
-            <X size={24} />
-          </button>
+      {/* Sidebar */}
+      <aside
+  className={`fixed top-0 left-0 z-40 h-full w-64 transform bg-slate-900 text-slate-300 border-r border-slate-800 transition-transform
+    md:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
+    flex flex-col   /* <-- tambah ini */
+  `}>
+        {/* HEADER LOGO */}
+        <div className="p-6 flex items-center gap-3 border-b border-slate-800">
+          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">
+            AT
+          </div>
+          <div>
+            <h1 className="text-white font-bold text-lg tracking-tight">Takhossus</h1>
+            <p className="text-xs text-slate-500">Admin Panel</p>
+          </div>
         </div>
 
-        {/* Menu Items */}
-        <nav className="flex-1 space-y-2 px-4 py-6 overflow-y-auto">
-          {menuItems.map((item) => {
-            const isActive = pathname === item.href
+        {/* MENU LIST */}
+        <div className="flex-1 py-6 px-3 space-y-6 overflow-y-auto">
+          {MENU_GROUPS.map((group, idx) => {
+            if (group.title === "Sistem" && userRole !== "Super Admin") return null
+
             return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setIsOpen(false)} // Tutup sidebar saat klik menu di mobile
-                className={`flex items-center px-4 py-3 rounded-lg transition-all duration-200 group ${
-                  isActive 
-                    ? 'bg-blue-600 text-white shadow-lg translate-x-1' 
-                    : 'text-gray-400 hover:bg-gray-800 hover:text-white'
-                }`}
-              >
-                <item.icon className={`w-5 h-5 mr-3 ${isActive ? 'text-white' : 'text-gray-500 group-hover:text-white'}`} />
-                <span className="font-bold text-sm tracking-wide">{item.name}</span>
-              </Link>
+              <div key={idx}>
+                <h3 className="px-3 text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                  {group.title}
+                </h3>
+
+                <div className="space-y-1">
+                  {group.items.map((item) => {
+                    const isActive = pathname === item.href
+                    const Icon = item.icon
+
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200
+                          ${isActive ? "bg-blue-600 text-white shadow-md shadow-blue-900/20" : "hover:bg-slate-800 hover:text-white"}`}
+                        onClick={closeDrawer}
+                      >
+                        <Icon size={18} className={isActive ? "text-white" : "text-slate-400"} />
+                        <span>{item.label}</span>
+                      </Link>
+                    )
+                  })}
+                </div>
+              </div>
             )
           })}
-        </nav>
+        </div>
 
-        {/* User & Logout Area */}
-        <div className="border-t border-gray-800 p-4">
-          <div className="mb-4 px-2">
-            <p className="text-xs font-bold uppercase text-gray-500">Login sebagai</p>
-            <p className="text-sm font-extrabold text-yellow-400">{userRole || 'Admin'}</p>
-          </div>
-          
-          <button 
-            onClick={() => signOut({ callbackUrl: '/login' })}
-            className="flex w-full items-center justify-center rounded-lg bg-red-500/10 px-4 py-2 text-sm font-bold text-red-400 transition-colors hover:bg-red-500 hover:text-white"
+        {/* FOOTER */}
+        <div className="p-4 border-t border-slate-800">
+          <button
+            onClick={handleSignOut}
+            disabled={loadingSignOut}
+            className="flex items-center gap-3 w-full px-3 py-2 text-sm font-medium text-red-400 hover:bg-slate-800 hover:text-red-300 rounded-lg transition disabled:opacity-60 disabled:cursor-not-allowed"
+            aria-label="Sign out"
           >
-            <LogOut className="mr-2 h-4 w-4" />
-            Keluar
+            <LogOut size={18} />
+            {loadingSignOut ? "Signing out..." : "Logout"}
           </button>
         </div>
       </aside>

@@ -1,0 +1,163 @@
+.
+├── eslint.config.mjs
+├── kok.txt
+├── next.config.ts
+├── next-env.d.ts
+├── node_modules
+
+├── package.json
+├── package-lock.json
+├── postcss.config.mjs
+├── prisma
+│   ├── migrations
+│   │   ├── 20251208191848_init_stable
+│   │   │   └── migration.sql
+│   │   ├── 20251211172906_add_schedule
+│   │   │   └── migration.sql
+│   │   ├── 20251212081628_add_mutakhorijin_status
+│   │   │   └── migration.sql
+│   │   ├── 20251212082520_add_mutakhorijin_batch
+│   │   │   └── migration.sql
+│   │   ├── 20251212100509_update_achievement_relation
+│   │   │   └── migration.sql
+│   │   ├── 20251212103243_update_org_structure
+│   │   │   └── migration.sql
+│   │   ├── 20251212122058_add_karya_tulis
+│   │   │   └── migration.sql
+│   │   ├── 20251212135527_update_pengurus
+│   │   │   └── migration.sql
+│   │   └── migration_lock.toml
+│   ├── schema.prisma
+│   └── seed.ts
+├── public
+│   ├── file.svg
+│   ├── globe.svg
+│   ├── next.svg
+│   ├── vercel.svg
+│   └── window.svg
+├── README.md
+├── src
+│   ├── app
+│   │   ├── actions
+│   │   │   ├── achievement.ts
+│   │   │   ├── alumni.ts
+│   │   │   ├── gallery.ts
+│   │   │   ├── karya.ts
+│   │   │   ├── mutakhorijin.ts
+│   │   │   ├── post.ts
+│   │   │   ├── role.ts
+│   │   │   ├── settings.ts
+│   │   │   ├── structure.ts
+│   │   │   ├── student-mutation.ts
+│   │   │   ├── student.ts
+│   │   │   ├── upload.ts
+│   │   │   └── user.ts
+│   │   ├── api
+│   │   │   └── auth
+│   │   │       └── [...nextauth]
+│   │   │           └── route.ts
+│   │   ├── dashboard
+│   │   │   ├── achievements
+│   │   │   │   ├── _components
+│   │   │   │   │   ├── AchievementDetailModal.tsx
+│   │   │   │   │   ├── AddAchievementForm.tsx
+│   │   │   │   │   ├── DeleteAchievementButton.tsx
+│   │   │   │   │   └── EditAchievementModal.tsx
+│   │   │   │   └── page.tsx
+│   │   │   ├── alumni
+│   │   │   │   ├── _components
+│   │   │   │   │   ├── AddAlumniForm.tsx
+│   │   │   │   │   ├── AlumniDetailModal.tsx
+│   │   │   │   │   ├── EditAlumniModal.tsx
+│   │   │   │   │   └── ReactivateButton.tsx
+│   │   │   │   └── page.tsx
+│   │   │   ├── gallery
+│   │   │   │   ├── _components
+│   │   │   │   │   ├── AddMediaForm.tsx
+│   │   │   │   │   ├── DeleteAlbumButton.tsx
+│   │   │   │   │   └── DeleteMediaButton.tsx
+│   │   │   │   ├── create
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── [id]
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── page.tsx
+│   │   │   ├── karya
+│   │   │   │   ├── _components
+│   │   │   │   │   ├── KaryaClient.tsx
+│   │   │   │   │   ├── KaryaDetail.tsx
+│   │   │   │   │   └── KaryaModal.tsx
+│   │   │   │   └── page.tsx
+│   │   │   ├── layout.tsx
+│   │   │   ├── leaders
+│   │   │   │   ├── _components
+│   │   │   │   │   ├── AddLeaderForm.tsx
+│   │   │   │   │   ├── EditLeaderModal.tsx
+│   │   │   │   │   └── LeaderDetailModal.tsx
+│   │   │   │   └── page.tsx
+│   │   │   ├── mutakhorijin
+│   │   │   │   ├── _components
+│   │   │   │   │   ├── EditMutakhorijinModal.tsx
+│   │   │   │   │   ├── MutakhorijinAction.tsx
+│   │   │   │   │   └── MutakhorijinDetailModal.tsx
+│   │   │   │   └── page.tsx
+│   │   │   ├── organization
+│   │   │   │   ├── _components
+│   │   │   │   │   ├── AddOrgForm.tsx
+│   │   │   │   │   ├── EditOrgModal.tsx
+│   │   │   │   │   └── OrgDetailModal.tsx
+│   │   │   │   └── page.tsx
+│   │   │   ├── page.tsx
+│   │   │   ├── posts
+│   │   │   │   ├── create
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── [id]
+│   │   │   │   │   └── edit
+│   │   │   │   │       ├── _components
+│   │   │   │   │       │   └── EditPostForm.tsx
+│   │   │   │   │       └── page.tsx
+│   │   │   │   └── page.tsx
+│   │   │   ├── roles
+│   │   │   │   ├── _components
+│   │   │   │   │   ├── RoleCard.tsx
+│   │   │   │   │   └── RoleManager.tsx
+│   │   │   │   └── page.tsx
+│   │   │   ├── schedules
+│   │   │   │   ├── _components
+│   │   │   │   │   └── AddScheduleForm.tsx
+│   │   │   │   └── page.tsx
+│   │   │   ├── struktur
+│   │   │   │   ├── _components
+│   │   │   │   │   ├── AddStaffForm.tsx
+│   │   │   │   │   ├── DetailModal.tsx
+│   │   │   │   │   ├── StaffModal.tsx
+│   │   │   │   │   └── StructureClient.tsx
+│   │   │   │   └── page.tsx
+│   │   │   ├── students
+│   │   │   │   ├── _components
+│   │   │   │   │   ├── StudentAction.tsx
+│   │   │   │   │   ├── StudentDetailModal.tsx
+│   │   │   │   │   └── SyncButton.tsx
+│   │   │   │   └── page.tsx
+│   │   │   └── users
+│   │   │       ├── _components
+│   │   │       │   └── AddUserForm.tsx
+│   │   │       └── page.tsx
+│   │   ├── favicon.ico
+│   │   ├── globals.css
+│   │   ├── layout.tsx
+│   │   ├── login
+│   │   │   └── page.tsx
+│   │   └── page.tsx
+│   ├── auth.ts
+│   ├── components
+│   │   ├── DashboardCharts.tsx
+│   │   ├── DashboardShell.tsx
+│   │   └── Sidebar.tsx
+│   └── lib
+│       └── auth-guard.ts
+├── struktur.txt
+├── tailwind.config.ts
+├── tsconfig.json
+└── tsting
+
+2847 directories, 34470 files

@@ -5,20 +5,29 @@ import { redirect } from "next/navigation"
 import AddUserForm from "./_components/AddUserForm" // Kita akan buat komponen ini
 import { Trash2 } from "lucide-react"
 import { deleteUser } from "@/app/actions/user"
+import { hasPermission } from "@/lib/auth-guard" // Import satpam tadi
 
 const prisma = new PrismaClient()
 
 export default async function UsersPage() {
-  const session = await auth()
   
-  // Proteksi: Hanya Super Admin yang boleh akses
-  if ((session?.user as any).role !== 'Super Admin') {
+  // CEK IZIN DI SINI
+  // Pastikan string 'user.read' ada di tabel Permission database Anda
+  const canAccess = await hasPermission("user.read") 
+
+  if (!canAccess) {
+    // Opsi A: Redirect ke dashboard
+    // redirect("/dashboard")
+    
+    // Opsi B: Tampilkan pesan error
     return (
-      <div className="bg-red-100 text-red-700 p-4 rounded-lg font-bold">
-        ⛔ Akses Ditolak. Halaman ini khusus Super Admin.
+      <div className="p-8 text-center text-red-600 bg-red-50 border border-red-200 rounded-xl">
+        <h1 className="text-2xl font-bold">Akses Ditolak ⛔</h1>
+        <p>Role Anda tidak memiliki izin untuk melihat halaman Manajemen User.</p>
       </div>
     )
   }
+  const session = await auth()
 
   // Ambil Data User & Role
   const users = await prisma.user.findMany({

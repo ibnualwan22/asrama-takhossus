@@ -1,58 +1,46 @@
 import { PrismaClient } from "@prisma/client"
-import { CheckCircle2, XCircle } from "lucide-react"
+import { auth } from "@/auth"
+import RoleManager from "./_components/RoleManager"
 
 const prisma = new PrismaClient()
 
-export default async function RolePage() {
+export const metadata = {
+  title: "Manajemen Role & Akses",
+}
+
+export default async function RolesPage() {
+  const session = await auth()
+
+  // 1. Proteksi Super Admin
+  if ((session?.user as any)?.role !== 'Super Admin') {
+    return (
+        <div className="p-8 text-center text-red-600 bg-red-50 rounded-xl border border-red-200 m-8">
+            <h1 className="text-2xl font-bold">Akses Ditolak</h1>
+            <p>Halaman ini hanya untuk Super Admin.</p>
+        </div>
+    )
+  }
+
+  // 2. Fetch Data (Server Side)
+  // Ambil Role beserta Permissions-nya
   const roles = await prisma.role.findMany({
-    include: { permissions: true }
+    include: { permissions: true }, 
+    orderBy: { name: 'asc' }
   })
-  
-  // List permission ini idealnya dinamis, tapi untuk tampilan kita list dulu
-  const allPermissions = await prisma.permission.findMany()
+
+  // Ambil Semua Permission yang tersedia di sistem untuk dijadikan checklist
+  const allPermissions = await prisma.permission.findMany({
+    orderBy: { action: 'asc' }
+  })
 
   return (
-    <div className="space-y-6">
-       <div className="bg-white p-6 rounded-xl shadow-sm">
-        <h1 className="text-2xl font-bold">Manajemen Role & Hak Akses</h1>
-        <p className="text-gray-500">Super Admin memiliki akses penuh secara default.</p>
+    <div className="p-6">
+      <div className="mb-2">
+         <h1 className="text-2xl font-extrabold text-gray-900">Konfigurasi Hak Akses</h1>
+         <p className="text-gray-500 text-sm">Kelola role dan centang izin yang boleh dilakukan.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {roles.map((role) => (
-          <div key={role.id} className="bg-white p-6 rounded-xl border shadow-sm">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-extrabold">{role.name}</h3>
-              <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded text-xs font-bold">
-                {role.permissions.length} Izin
-              </span>
-            </div>
-            
-            <div className="space-y-2 h-48 overflow-y-auto pr-2 border-t pt-4">
-              {allPermissions.map((perm) => {
-                const hasPerm = role.permissions.some(p => p.id === perm.id)
-                return (
-                  <div key={perm.id} className="flex items-center justify-between text-sm p-2 rounded hover:bg-gray-50">
-                    <span className="text-gray-700">{perm.description || perm.action}</span>
-                    {hasPerm ? (
-                      <CheckCircle2 className="text-green-500 w-5 h-5" />
-                    ) : (
-                      <XCircle className="text-gray-300 w-5 h-5" />
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-            
-            {/* Note: Fitur Edit Checkbox Permission akan sangat kompleks jika dibuat sekarang.
-                Untuk saat ini, tampilan ini berfungsi untuk AUDIT (Melihat siapa boleh apa).
-            */}
-            <button className="w-full mt-4 bg-gray-900 text-white py-2 rounded-lg font-bold text-sm disabled:opacity-50" disabled>
-              Edit Hak Akses (Coming Soon)
-            </button>
-          </div>
-        ))}
-      </div>
+      <RoleManager roles={roles} allPermissions={allPermissions} />
     </div>
   )
 }

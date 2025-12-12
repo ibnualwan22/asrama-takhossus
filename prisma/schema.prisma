@@ -204,3 +204,15 @@ model DailySchedule {
   activity  String   // Contoh: "Qiyamul Lail"
   createdAt DateTime @default(now())
 }
+
+model Karya {
+  id          String   @id @default(uuid())
+  title       String   // Nama Kitab
+  author      String   // Penyusun (Bisa nama santri atau Tim)
+  year        Int      // Tahun Terbit
+  description String?  @db.Text // Deskripsi (Text panjang)
+  image       String?  // URL Foto Kitab
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

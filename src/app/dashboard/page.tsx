@@ -118,8 +118,8 @@ export default async function DashboardPage() {
         <StatCard label="Total Alumni" value={totalAlumni} color="bg-purple-50 text-purple-700" icon={GraduationCap} />
         <StatCard label="Artikel Terbit" value={totalArticles} color="bg-orange-50 text-orange-700" icon={Newspaper} />
         <StatCard label="Total Foto Galeri" value={totalGallery} color="bg-pink-50 text-pink-700" icon={ImageIcon} />
-        <StatCard label="Divisi Organisasi" value={totalOrg} color="bg-emerald-50 text-emerald-700" icon={Briefcase} />
-        <StatCard label="Pimpinan/Kepala" value={totalLeaders} color="bg-yellow-50 text-yellow-700" icon={Crown} />
+        <StatCard label="Total Organisasi" value={totalOrg} color="bg-emerald-50 text-emerald-700" icon={Briefcase} />
+        <StatCard label="Total Kepdar" value={totalLeaders} color="bg-yellow-50 text-yellow-700" icon={Crown} />
       </div>
 
       {/* Grafik Component */}

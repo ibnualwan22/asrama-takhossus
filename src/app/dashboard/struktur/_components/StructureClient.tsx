@@ -40,7 +40,7 @@ export default function StructureClient({ staffList, candidates }: Props) {
           <table className="w-full text-left text-sm">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-6 py-4 font-bold text-gray-700 w-16">#</th>
+                <th className="px-6 py-4 font-bold text-gray-700 w-16">No</th>
                 <th className="px-6 py-4 font-bold text-gray-700">Foto</th>
                 <th className="px-6 py-4 font-bold text-gray-700">Nama</th>
                 <th className="px-6 py-4 font-bold text-gray-700">Jabatan</th>
