@@ -110,26 +110,101 @@ const OrgSchema = z.object({
   name: z.string().min(3),
   description: z.string().min(5),
   order: z.coerce.number().default(0),
-  logo: z.string().optional().nullable(),
+  category: z.enum(['KEILMUAN', 'KESENIAN']),
+  leaderId: z.string().optional().nullable(),
+  advisorId: z.string().optional().nullable(),
 })
 
+// 1. CREATE ORGANISASI
 export async function createOrganization(prevState: any, formData: FormData) {
   const data = OrgSchema.safeParse({
     name: formData.get('name'),
     description: formData.get('description'),
     order: formData.get('order'),
-    logo: formData.get('logoUrl'), // Ambil dari Hidden Input
+    category: formData.get('category'),
+    leaderId: formData.get('leaderId'),
+    advisorId: formData.get('advisorId'),
   })
 
   if (!data.success) return { message: "Data tidak valid" }
 
-  await prisma.organization.create({ data: data.data })
-  revalidatePath('/dashboard/organization')
-  return { success: true }
+  // Upload Logo
+  let logoUrl = null
+  const file = formData.get('file') as File | null
+  if (file && file.size > 0) {
+    const uploadRes = await uploadImage(formData)
+    if (uploadRes.success) logoUrl = uploadRes.url
+    else return { message: "Gagal upload logo" }
+  }
+
+  try {
+    await prisma.organization.create({ 
+      data: {
+        ...data.data,
+        logo: logoUrl,
+        leaderId: data.data.leaderId || null,
+        advisorId: data.data.advisorId || null,
+      } 
+    })
+    revalidatePath('/dashboard/organization')
+    return { success: true, message: "Organisasi berhasil dibuat!" }
+  } catch (e) {
+    return { message: "Gagal menyimpan data" }
+  }
+}
+
+// 2. UPDATE ORGANISASI
+export async function updateOrganization(prevState: any, formData: FormData) {
+  const id = formData.get('id') as string
+  
+  const data = OrgSchema.safeParse({
+    name: formData.get('name'),
+    description: formData.get('description'),
+    order: formData.get('order'),
+    category: formData.get('category'),
+    leaderId: formData.get('leaderId'),
+    advisorId: formData.get('advisorId'),
+  })
+
+  if (!data.success) return { message: "Data tidak valid" }
+
+  // Upload Logo Baru (Optional)
+  let logoUrl = null
+  const file = formData.get('file') as File | null
+  if (file && file.size > 0) {
+    const uploadRes = await uploadImage(formData)
+    if (uploadRes.success) logoUrl = uploadRes.url
+    else return { message: "Gagal upload logo baru" }
+  } else {
+    logoUrl = formData.get('oldLogoUrl') as string || null
+  }
+
+  try {
+    await prisma.organization.update({ 
+      where: { id },
+      data: {
+        ...data.data,
+        logo: logoUrl,
+        leaderId: data.data.leaderId || null,
+        advisorId: data.data.advisorId || null,
+      } 
+    })
+    revalidatePath('/dashboard/organization')
+    return { success: true, message: "Data diperbarui!" }
+  } catch (e) {
+    return { message: "Gagal update data" }
+  }
 }
 
 export async function deleteOrganization(id: string) {
   await prisma.organization.delete({ where: { id } })
+  revalidatePath('/dashboard/organization')
+}
+
+// --- STAFF / PENGURUS (SIMPLE CRUD UNTUK DATA PEMBIMBING) ---
+// Kita buat fungsi create sederhana agar Anda bisa isi data pengurus nanti
+export async function createStaffSimple(name: string, position: string) {
+  await prisma.staff.create({ data: { name, position } })
   revalidatePath('/dashboard/organization')
 }
 

@@ -78,14 +78,47 @@ model Student {
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+  ledOrganizations Organization[]
 }
 
+enum OrgCategory {
+  KEILMUAN
+  KESENIAN
+}
+
+// 2. BUAT MODEL STAFF (PENGURUS) - Sederhana dulu
+model Staff {
+  id        String   @id @default(uuid())
+  name      String
+  position  String   // Jabatan di struktur kepengurusan asrama (bukan organisasi santri)
+  photo     String?
+  
+  // Relasi: Satu pengurus bisa membimbing banyak organisasi
+  mentoredOrgs Organization[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// 3. UPDATE MODEL ORGANISASI
 model Organization {
-  id          String   @id @default(uuid())
+  id          String      @id @default(uuid())
   name        String   
-  logo        String?  
   description String   
-  order       Int      @default(0)
+  logo        String?  
+  order       Int         @default(0)
+  
+  // Field Baru
+  category    OrgCategory @default(KEILMUAN)
+  
+  // Relasi Ketua (Dari Santri)
+  leaderId    String?     
+  leader      Student?    @relation(fields: [leaderId], references: [id])
+
+  // Relasi Pembimbing (Dari Pengurus)
+  advisorId   String?
+  advisor     Staff?      @relation(fields: [advisorId], references: [id])
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
