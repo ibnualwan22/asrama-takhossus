@@ -75,6 +75,7 @@ model Student {
   
   achievements    Achievement[] 
   works           Work[]        
+  staffPositions  Staff[]
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -89,11 +90,20 @@ enum OrgCategory {
 // 2. BUAT MODEL STAFF (PENGURUS) - Sederhana dulu
 model Staff {
   id        String   @id @default(uuid())
-  name      String
-  position  String   // Jabatan di struktur kepengurusan asrama (bukan organisasi santri)
-  photo     String?
   
-  // Relasi: Satu pengurus bisa membimbing banyak organisasi
+  // A. RELASI KE DATA SANTRI (MUTAKHORIJIN)
+  studentId String?
+  student   Student? @relation(fields: [studentId], references: [id], onDelete: SetNull)
+
+  // B. DATA MANUAL (Jika studentId kosong)
+  // Kita ubah 'name' jadi optional, atau anggap ini 'manualName'
+  name      String?  
+
+  position  String   // Jabatan (Ketua, Bendahara, dll)
+  photo     String?  // Foto khusus struktur (bisa beda dengan foto santri)
+  order     Int      @default(0) // Untuk urutan tampilan
+  isActive  Boolean  @default(true) 
+  
   mentoredOrgs Organization[]
 
   createdAt DateTime @default(now())

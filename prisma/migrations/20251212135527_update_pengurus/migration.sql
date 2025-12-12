@@ -1,0 +1,8 @@
+-- AlterTable
+ALTER TABLE "Staff" ADD COLUMN     "isActive" BOOLEAN NOT NULL DEFAULT true,
+ADD COLUMN     "order" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "studentId" TEXT,
+ALTER COLUMN "name" DROP NOT NULL;
+
+-- AddForeignKey
+ALTER TABLE "Staff" ADD CONSTRAINT "Staff_studentId_fkey" FOREIGN KEY ("studentId") REFERENCES "Student"("id") ON DELETE SET NULL ON UPDATE CASCADE;
