@@ -17,11 +17,11 @@ const menuItems = [
   { name: 'Data Mutakhorijin ', href: '/dashboard/mutakhorijin', icon: GraduationCap },
   { name: 'Artikel & Konten', href: '/dashboard/posts', icon: Newspaper },
   { name: 'Galeri Kegiatan', href: '/dashboard/gallery', icon: ImageIcon },
-  { name: 'Galeri Kegiatan', href: '/dashboard/achievements', icon: ImageIcon },
-  { name: 'Galeri Kegiatan', href: '/dashboard/leaders', icon: ImageIcon },
-  { name: 'Galeri Kegiatan', href: '/dashboard/organization', icon: ImageIcon },
-  { name: 'Galeri Kegiatan', href: '/dashboard/roles', icon: ImageIcon },
-  { name: 'Galeri Kegiatan', href: '/dashboard/schedules', icon: ImageIcon },
+  { name: 'Prestasi', href: '/dashboard/achievements', icon: ImageIcon },
+  { name: 'Kepala Daerah', href: '/dashboard/leaders', icon: ImageIcon },
+  { name: 'Organisasi', href: '/dashboard/organization', icon: ImageIcon },
+  { name: 'Manajemen Role', href: '/dashboard/roles', icon: ImageIcon },
+  { name: 'Jadwal Kegiatan', href: '/dashboard/schedules', icon: ImageIcon },
 ]
 
 interface SidebarProps {

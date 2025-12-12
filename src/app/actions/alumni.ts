@@ -91,3 +91,52 @@ export async function createManualAlumni(prevState: any, formData: FormData) {
     return { message: 'Terjadi kesalahan server.' }
   }
 }
+
+export async function updateAlumni(prevState: any, formData: FormData) {
+  const id = formData.get('id') as string
+  const name = formData.get('name') as string
+  const nis = formData.get('nis') as string
+  const entryYear = Number(formData.get('entryYear'))
+  const graduationYear = formData.get('graduationYear') 
+      ? Number(formData.get('graduationYear')) 
+      : null
+  const mutakhorijinBatch = formData.get('mutakhorijinBatch') 
+      ? Number(formData.get('mutakhorijinBatch')) 
+      : null
+  const address = formData.get('address') as string
+
+  try {
+    await prisma.student.update({
+      where: { id },
+      data: {
+        name, nis, entryYear, graduationYear, mutakhorijinBatch, address
+      }
+    })
+    revalidatePath('/dashboard/alumni')
+    return { success: true, message: 'Data alumni berhasil diupdate!' }
+  } catch (error) {
+    return { success: false, message: 'Gagal update data.' }
+  }
+}
+
+// 2. FUNGSI AKTIFKAN KEMBALI (UNDO ALUMNI)
+export async function reactivateStudent(studentId: string) {
+  try {
+    await prisma.student.update({
+      where: { id: studentId },
+      data: {
+        status: StudentStatus.ACTIVE, // Kembalikan jadi AKTIF
+        graduationYear: null,         // Hapus tahun keluar
+        mutakhorijinBatch: null       // Hapus angkatan mutakhorijin
+      }
+    })
+
+    revalidatePath('/dashboard/alumni')
+    revalidatePath('/dashboard/students')
+    revalidatePath('/dashboard/mutakhorijin')
+
+    return { success: true, message: 'Santri berhasil diaktifkan kembali!' }
+  } catch (error) {
+    return { success: false, message: 'Gagal mengaktifkan kembali.' }
+  }
+}
