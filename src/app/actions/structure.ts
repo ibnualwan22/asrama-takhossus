@@ -15,6 +15,10 @@ export async function saveStaff(formData: FormData) {
   const position = formData.get("position") as string
   const order = parseInt(formData.get("order") as string) || 0
 
+  const periodStart = parseInt(formData.get("periodStart") as string) || new Date().getFullYear()
+  const periodEnd = formData.get("periodEnd") ? parseInt(formData.get("periodEnd") as string) : null
+  const isActive = formData.get("isActive") === "on" // Checkbox
+
   // --- LOGIC UPLOAD FOTO (Menggunakan Helper uploadImage) ---
   let photoUrl = null
   
@@ -40,6 +44,8 @@ export async function saveStaff(formData: FormData) {
   let dataToSave: any = {
     position,
     order,
+    periodStart, // Simpan tahun
+    periodEnd,
     isActive: true,
   }
 

@@ -4,6 +4,10 @@ import { X, Eye, User, Award } from 'lucide-react'
 
 export default function OrgDetailModal({ org }: { org: any }) {
   const [isOpen, setIsOpen] = useState(false)
+  
+  // Ambil struktur aktif
+  const currentStruct = org.history?.[0]
+
   return (
     <>
       <button onClick={() => setIsOpen(true)} className="text-blue-600 hover:bg-blue-50 p-2 rounded-lg"><Eye size={16}/></button>
@@ -29,18 +33,17 @@ export default function OrgDetailModal({ org }: { org: any }) {
                 <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center text-blue-600"><User size={20}/></div>
                 <div>
                   <p className="text-xs font-bold text-gray-500 uppercase">Ketua Organisasi</p>
-                  <p className="font-bold text-gray-900">{org.leader?.name || 'Belum dipilih'}</p>
+                  <p className="font-bold text-gray-900">{currentStruct?.leader?.name || 'Belum dipilih'}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-purple-50 rounded-full flex items-center justify-center text-purple-600"><Award size={20}/></div>
                 <div>
                   <p className="text-xs font-bold text-gray-500 uppercase">Pembimbing</p>
-                  <p className="font-bold text-gray-900">{org.advisor?.name || 'Belum dipilih'}</p>
+                  <p className="font-bold text-gray-900">{currentStruct?.advisor?.name || 'Belum dipilih'}</p>
                 </div>
               </div>
             </div>
-
           </div>
         </div>
       )}

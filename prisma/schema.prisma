@@ -79,7 +79,7 @@ model Student {
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
-  ledOrganizations Organization[]
+  ledOrgPeriods   OrgPeriod[]
 }
 
 enum OrgCategory {
@@ -91,46 +91,75 @@ enum OrgCategory {
 model Staff {
   id        String   @id @default(uuid())
   
-  // A. RELASI KE DATA SANTRI (MUTAKHORIJIN)
+  // Relasi ke Mutakhorijin (Lulusan)
+  // Jika diambil dari database santri
   studentId String?
   student   Student? @relation(fields: [studentId], references: [id], onDelete: SetNull)
 
-  // B. DATA MANUAL (Jika studentId kosong)
-  // Kita ubah 'name' jadi optional, atau anggap ini 'manualName'
+  // Nama Manual (Jika orang luar/bukan data santri)
   name      String?  
 
-  position  String   // Jabatan (Ketua, Bendahara, dll)
-  photo     String?  // Foto khusus struktur (bisa beda dengan foto santri)
-  order     Int      @default(0) // Untuk urutan tampilan
-  isActive  Boolean  @default(true) 
+  position  String   // Misal: "Lurah Asrama", "Bagian Keamanan"
   
-  mentoredOrgs Organization[]
+  // --- FIELD BARU UNTUK RIWAYAT ---
+  periodStart Int    @default(2025)
+  periodEnd   Int?   // Tahun Selesai (Misal: 2024). Jika null, berarti masih aktif.
+  isActive    Boolean @default(true) // Penanda visual saja
+  // --------------------------------
+
+  photo     String?  
+  order     Int      @default(0) 
+
+  // Relasi: Staff ini bisa jadi Pembimbing di banyak Organisasi
+  mentoredOrgs OrgPeriod[] 
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-// 3. UPDATE MODEL ORGANISASI
+// --- MODEL ORGANISASI (INDUK) ---
 model Organization {
   id          String      @id @default(uuid())
-  name        String   
-  description String   
-  logo        String?  
+  name        String      // Nama Organisasi (Misal: "IPMA", "Hadroh")
+  description String    
+  logo        String?   
+  category    OrgCategory @default(KEILMUAN)
   order       Int         @default(0)
   
-  // Field Baru
-  category    OrgCategory @default(KEILMUAN)
-  
-  // Relasi Ketua (Dari Santri)
-  leaderId    String?     
-  leader      Student?    @relation(fields: [leaderId], references: [id])
-
-  // Relasi Pembimbing (Dari Pengurus)
-  advisorId   String?
-  advisor     Staff?      @relation(fields: [advisorId], references: [id])
+  // Relasi ke Riwayat Kepengurusan
+  history     OrgPeriod[] 
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+// --- TABEL BARU: RIWAYAT ORGANISASI PER TAHUN ---
+model OrgPeriod {
+  id              String       @id @default(uuid())
+  
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  // TAHUN PERIODE
+  periodStart     Int          // Misal: 2024
+  periodEnd       Int?         // Misal: 2025
+
+  // STRUKTUR PADA TAHUN TERSEBUT
+  // 1. Ketua (Dari Santri Aktif)
+  leaderId        String?
+  leader          Student?     @relation(fields: [leaderId], references: [id])
+
+  // 2. Pembimbing (Dari Pengurus/Staff)
+  advisorId       String?
+  advisor         Staff?       @relation(fields: [advisorId], references: [id])
+  
+  isActive        Boolean      @default(true)
+
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  // Agar cepat saat filter "Tampilkan Organisasi Tahun 2024"
+  @@index([periodStart])
 }
 
 model Leader {

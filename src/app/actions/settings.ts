@@ -4,11 +4,13 @@
 import { PrismaClient } from "@prisma/client"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
-import { uploadImage } from "./upload" // Import helper upload yang sudah fix
+import { uploadImage } from "./upload" 
 
 const prisma = new PrismaClient()
 
-// --- 1. KEPALA ASRAMA (LEADERS) ---
+// ============================================================================
+// 1. KEPALA ASRAMA (LEADERS) - Tidak Berubah
+// ============================================================================
 
 const LeaderSchema = z.object({
   name: z.string().min(3),
@@ -17,7 +19,6 @@ const LeaderSchema = z.object({
   bio: z.string().optional(),
 })
 
-// CREATE
 export async function createLeader(prevState: any, formData: FormData) {
   const data = LeaderSchema.safeParse({
     name: formData.get('name'),
@@ -28,7 +29,6 @@ export async function createLeader(prevState: any, formData: FormData) {
 
   if (!data.success) return { message: "Data tidak valid" }
 
-  // LOGIKA UPLOAD FOTO (Server Side)
   let finalPhotoUrl = null
   const file = formData.get('file') as File | null
 
@@ -46,7 +46,7 @@ export async function createLeader(prevState: any, formData: FormData) {
       data: { 
         ...data.data, 
         bio: data.data.bio || '',
-        photo: finalPhotoUrl // Simpan URL
+        photo: finalPhotoUrl 
       }
     })
     revalidatePath('/dashboard/leaders')
@@ -56,7 +56,6 @@ export async function createLeader(prevState: any, formData: FormData) {
   }
 }
 
-// UPDATE
 export async function updateLeader(prevState: any, formData: FormData) {
   const id = formData.get('id') as string
   
@@ -69,7 +68,6 @@ export async function updateLeader(prevState: any, formData: FormData) {
 
   if (!data.success) return { message: "Data update tidak valid" }
 
-  // Logic Upload Update
   let finalPhotoUrl = null
   const file = formData.get('file') as File | null
 
@@ -97,36 +95,39 @@ export async function updateLeader(prevState: any, formData: FormData) {
   }
 }
 
-// DELETE
 export async function deleteLeader(id: string) {
   await prisma.leader.delete({ where: { id } })
   revalidatePath('/dashboard/leaders')
 }
 
 
+// ============================================================================
+// 2. ORGANISASI (UPDATE LOGIC UNTUK PERIOD & RIWAYAT)
+// ============================================================================
 
-// --- 2. ORGANISASI ---
 const OrgSchema = z.object({
   name: z.string().min(3),
   description: z.string().min(5),
   order: z.coerce.number().default(0),
   category: z.enum(['KEILMUAN', 'KESENIAN']),
-  leaderId: z.string().optional().nullable(),
-  advisorId: z.string().optional().nullable(),
+  // leaderId dan advisorId tidak divalidasi disini karena tidak masuk tabel Organization
 })
 
-// 1. CREATE ORGANISASI
+// --- CREATE ORGANISASI ---
 export async function createOrganization(prevState: any, formData: FormData) {
   const data = OrgSchema.safeParse({
     name: formData.get('name'),
     description: formData.get('description'),
     order: formData.get('order'),
     category: formData.get('category'),
-    leaderId: formData.get('leaderId'),
-    advisorId: formData.get('advisorId'),
   })
 
   if (!data.success) return { message: "Data tidak valid" }
+
+  // Ambil data Relasi Manual
+  const leaderId = formData.get('leaderId') as string
+  const advisorId = formData.get('advisorId') as string
+  const periodStart = parseInt(formData.get('periodStart') as string) || new Date().getFullYear()
 
   // Upload Logo
   let logoUrl = null
@@ -138,13 +139,27 @@ export async function createOrganization(prevState: any, formData: FormData) {
   }
 
   try {
-    await prisma.organization.create({ 
-      data: {
-        ...data.data,
-        logo: logoUrl,
-        leaderId: data.data.leaderId || null,
-        advisorId: data.data.advisorId || null,
-      } 
+    await prisma.$transaction(async (tx) => {
+        // A. Buat Organisasi Induk
+        const newOrg = await tx.organization.create({ 
+            data: {
+                ...data.data,
+                logo: logoUrl,
+            } 
+        })
+
+        // B. Buat Periode dengan Tahun yang DIPILIH USER
+        if (leaderId || advisorId) {
+            await tx.orgPeriod.create({
+                data: {
+                    organizationId: newOrg.id,
+                    periodStart: periodStart, // <--- GUNAKAN INPUT USER
+                    leaderId: leaderId || null,
+                    advisorId: advisorId || null,
+                    isActive: true
+                }
+            })
+        }
     })
     revalidatePath('/dashboard/organization')
     return { success: true, message: "Organisasi berhasil dibuat!" }
@@ -153,7 +168,7 @@ export async function createOrganization(prevState: any, formData: FormData) {
   }
 }
 
-// 2. UPDATE ORGANISASI
+// --- UPDATE ORGANISASI ---
 export async function updateOrganization(prevState: any, formData: FormData) {
   const id = formData.get('id') as string
   
@@ -162,11 +177,14 @@ export async function updateOrganization(prevState: any, formData: FormData) {
     description: formData.get('description'),
     order: formData.get('order'),
     category: formData.get('category'),
-    leaderId: formData.get('leaderId'),
-    advisorId: formData.get('advisorId'),
   })
 
   if (!data.success) return { message: "Data tidak valid" }
+
+  // Ambil data Relasi
+  const leaderId = formData.get('leaderId') as string
+  const advisorId = formData.get('advisorId') as string
+  const periodStart = parseInt(formData.get('periodStart') as string) || new Date().getFullYear()
 
   // Upload Logo Baru (Optional)
   let logoUrl = null
@@ -180,14 +198,45 @@ export async function updateOrganization(prevState: any, formData: FormData) {
   }
 
   try {
-    await prisma.organization.update({ 
-      where: { id },
-      data: {
-        ...data.data,
-        logo: logoUrl,
-        leaderId: data.data.leaderId || null,
-        advisorId: data.data.advisorId || null,
-      } 
+    await prisma.$transaction(async (tx) => {
+        // A. Update Induk
+        await tx.organization.update({ 
+            where: { id },
+            data: {
+                ...data.data,
+                logo: logoUrl,
+            } 
+        })
+
+        // B. Update Struktur Aktif
+        const activePeriod = await tx.orgPeriod.findFirst({
+            where: { organizationId: id, isActive: true }
+        })
+
+        if (activePeriod) {
+            // Update Data & TAHUNNYA JUGA
+            await tx.orgPeriod.update({
+                where: { id: activePeriod.id },
+                data: {
+                    periodStart: periodStart, // <--- Update tahun jika user menggantinya
+                    leaderId: leaderId || null,
+                    advisorId: advisorId || null
+                }
+            })
+        } else {
+            // Jika belum ada, buat baru dengan tahun inputan
+            if (leaderId || advisorId) {
+                await tx.orgPeriod.create({
+                    data: {
+                        organizationId: id,
+                        periodStart: periodStart, // <--- Gunakan input user
+                        leaderId: leaderId || null,
+                        advisorId: advisorId || null,
+                        isActive: true
+                    }
+                })
+            }
+        }
     })
     revalidatePath('/dashboard/organization')
     return { success: true, message: "Data diperbarui!" }
@@ -201,15 +250,11 @@ export async function deleteOrganization(id: string) {
   revalidatePath('/dashboard/organization')
 }
 
-// --- STAFF / PENGURUS (SIMPLE CRUD UNTUK DATA PEMBIMBING) ---
-// Kita buat fungsi create sederhana agar Anda bisa isi data pengurus nanti
-export async function createStaffSimple(name: string, position: string) {
-  await prisma.staff.create({ data: { name, position } })
-  revalidatePath('/dashboard/organization')
-}
 
+// ============================================================================
+// 3. JADWAL HARIAN - Tidak Berubah
+// ============================================================================
 
-// --- 3. JADWAL HARIAN ---
 const ScheduleSchema = z.object({
   startTime: z.string(),
   endTime: z.string(),
