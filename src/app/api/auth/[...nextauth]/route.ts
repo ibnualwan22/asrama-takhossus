@@ -1,3 +1,3 @@
-// src/app/api/auth/[...nextauth]/route.ts
-import { handlers } from "@/auth" // Import dari file yang kita buat di langkah 3
+import { handlers } from "@/auth" // Import dari file yang baru kita buat
+
 export const { GET, POST } = handlers

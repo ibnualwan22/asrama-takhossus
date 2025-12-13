@@ -10,34 +10,39 @@ export const metadata = {
 
 export default async function RolesPage() {
   const session = await auth()
+  const userRole = (session?.user as any)?.role
 
-  // 1. Proteksi Super Admin
-  if ((session?.user as any)?.role !== 'Super Admin') {
+  // --- PERBAIKAN DI SINI ---
+  // Kita cek .name (karena role adalah object)
+  if (userRole?.name !== 'Super Admin') {
     return (
-        <div className="p-8 text-center text-red-600 bg-red-50 rounded-xl border border-red-200 m-8">
-            <h1 className="text-2xl font-bold">Akses Ditolak</h1>
-            <p>Halaman ini hanya untuk Super Admin.</p>
+        <div className="flex items-center justify-center h-[60vh]">
+            <div className="text-center text-red-600 bg-red-50 p-8 rounded-xl border border-red-200 shadow-sm max-w-md mx-auto">
+                <h1 className="text-3xl font-bold mb-2">Akses Ditolak 🚫</h1>
+                <p className="text-red-500">
+                    Halaman ini hanya untuk <strong>Super Admin</strong>.<br/>
+                    Role Anda saat ini: <strong>{userRole?.name || 'Tidak Terdeteksi'}</strong>
+                </p>
+            </div>
         </div>
     )
   }
 
   // 2. Fetch Data (Server Side)
-  // Ambil Role beserta Permissions-nya
   const roles = await prisma.role.findMany({
     include: { permissions: true }, 
     orderBy: { name: 'asc' }
   })
 
-  // Ambil Semua Permission yang tersedia di sistem untuk dijadikan checklist
   const allPermissions = await prisma.permission.findMany({
     orderBy: { action: 'asc' }
   })
 
   return (
-    <div className="p-6">
-      <div className="mb-2">
+    <div className="p-6 max-w-7xl mx-auto">
+      <div className="mb-6 border-b pb-4">
          <h1 className="text-2xl font-extrabold text-gray-900">Konfigurasi Hak Akses</h1>
-         <p className="text-gray-500 text-sm">Kelola role dan centang izin yang boleh dilakukan.</p>
+         <p className="text-gray-500 text-sm mt-1">Kelola role dan centang izin yang boleh dilakukan.</p>
       </div>
 
       <RoleManager roles={roles} allPermissions={allPermissions} />

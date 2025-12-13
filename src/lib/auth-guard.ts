@@ -1,68 +1,32 @@
-// src/lib/auth-guard.ts
-import { auth } from "@/auth"
-import { PrismaClient } from "@prisma/client"
+import { auth } from "@/auth" // Pastikan import dari konfigurasi v5
 import { redirect } from "next/navigation"
 
-const prisma = new PrismaClient()
-
-/**
- * Cek apakah user yang sedang login memiliki izin tertentu.
- * Mengembalikan TRUE/FALSE (Tidak redirect).
- * Cocok untuk menyembunyikan Tombol di UI.
- */
-export async function hasPermission(action: string) {
+// Fungsi Helper untuk Cek Izin (Return Boolean)
+export async function hasPermission(permission: string): Promise<boolean> {
   const session = await auth()
   
   // 1. Cek Login
-  if (!session || !session.user) {
-    console.log(`[AuthGuard] User belum login.`)
-    return false
-  }
+  if (!session || !session.user) return false
 
-  // 2. Ambil User + Role + Permission Langsung dari DB (Fresh Data)
-  // Kita cari berdasarkan username atau email dari session
-  const user = await prisma.user.findFirst({
-    where: { 
-        OR: [
-            { username: session.user.name as string }, // Asumsi session.user.name = username
-            // { id: session.user.id } // Jika Anda sudah setup ID di session
-        ]
-    },
-    include: {
-      role: {
-        include: { permissions: true }
-      }
-    }
-  })
-
-  if (!user || !user.role) {
-    console.log(`[AuthGuard] User/Role tidak ditemukan di DB.`)
-    return false
-  }
-
-  // 3. BYPASS SUPER ADMIN
-  // Super Admin selalu boleh ngapain aja
-  if (user.role.name === 'Super Admin') return true
-
-  // 4. Cek Permission Spesifik
-  const hasAccess = user.role.permissions.some(p => p.action === action)
+  const userRole = (session.user as any).role
   
-  if (!hasAccess) {
-    console.log(`[AuthGuard] GAGAL: User '${user.username}' (Role: ${user.role.name}) mencoba akses '${action}' tapi tidak punya izin.`)
+  // 2. GOD MODE: Jika Role adalah "Super Admin", IZINKAN SEMUANYA
+  // Pastikan nama ini SAMA PERSIS dengan di Database (Case Sensitive)
+  if (userRole?.name === "Super Admin") {
+    return true
   }
 
-  return hasAccess
+  // 3. Cek Permission Spesifik (Untuk role biasa seperti 'Pengurus', 'Admin', dll)
+  const permissions = userRole?.permissions || []
+  return permissions.some((p: any) => p.action === permission)
 }
 
-/**
- * Cek izin, jika GAGAL langsung tendang (Redirect).
- * Cocok untuk memproteksi Server Action atau Halaman Utuh.
- */
-export async function requirePermission(action: string) {
-  const allowed = await hasPermission(action)
-  
-  if (!allowed) {
-    // Jika dipanggil di Server Action, throw error agar ditangkap blok catch
-    throw new Error(`AKSES DITOLAK: Anda tidak memiliki izin '${action}'.`)
+// Fungsi Utama Guard (Throw Error jika gagal)
+// Digunakan di Server Actions (seperti di file alumni.ts, student.ts yang Anda kirim)
+export async function requirePermission(permission: string) {
+  const isAllowed = await hasPermission(permission)
+
+  if (!isAllowed) {
+    throw new Error(`Akses Ditolak: Anda tidak memiliki izin '${permission}'.`)
   }
 }

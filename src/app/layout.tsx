@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   title: "Asrama Takhossus - Pasca Amtsilati",
   description: "Mencetak generasi santri beramal ilmiyyah, berilmu amaliyyah.",
   icons: {
-    icon: "/favicon.ico", // Pastikan punya favicon atau hapus baris ini
+    icon: "/favicon.png", // Pastikan punya favicon atau hapus baris ini
   },
 };
 

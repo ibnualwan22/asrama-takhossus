@@ -1,81 +1,82 @@
-// src/auth.ts
 import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 import { PrismaClient } from "@prisma/client"
-import bcrypt from "bcryptjs"
-import { z } from "zod"
+import { compare } from "bcryptjs"
 
 const prisma = new PrismaClient()
 
-// Skema validasi input login
-const loginSchema = z.object({
-  username: z.string().min(1, "Username wajib diisi"),
-  password: z.string().min(6, "Password minimal 6 karakter"),
-})
-
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 hari
+  },
+  
+  // Di v5, secret otomatis dibaca dari process.env.AUTH_SECRET
+  // Jadi tidak perlu ditulis manual di sini jika variable .env sudah ada.
+
   providers: [
     Credentials({
+      name: "Credentials",
       credentials: {
         username: { label: "Username", type: "text" },
-        password: { label: "Password", type: "password" },
+        password: { label: "Password", type: "password" }
       },
-      authorize: async (credentials) => {
-        try {
-          // 1. Validasi input
-          const { username, password } = await loginSchema.parseAsync(credentials)
+      async authorize(credentials) {
+        const username = credentials?.username as string
+        const password = credentials?.password as string
 
-          // 2. Cari user di database
-          const user = await prisma.user.findUnique({
-            where: { username },
-            include: { role: true } // Kita butuh role-nya nanti
-          })
+        if (!username || !password) return null
 
-          if (!user) {
-            throw new Error("User tidak ditemukan.")
+        // 1. Cari User di DB
+        const user = await prisma.user.findUnique({
+          where: { username },
+          include: {
+            role: {
+              include: { permissions: true }
+            }
           }
+        })
 
-          // 3. Cek password
-          const isPasswordValid = await bcrypt.compare(password, user.password)
-
-          if (!isPasswordValid) {
-            throw new Error("Password salah.")
-          }
-
-          // 4. Return data user (masuk ke session)
-          return {
-            id: user.id,
-            name: user.name,
-            username: user.username,
-            role: user.role.name, // Penting untuk RBAC
-          }
-        } catch (error) {
-          console.error("Login error:", error)
+        // 2. Validasi Password
+        if (!user || !(await compare(password, user.password))) {
           return null
         }
-      },
-    }),
+
+        // 3. Return User (Format v5 lebih fleksibel)
+        return {
+          id: user.id,
+          name: user.name,
+          username: user.username,
+          role: (user as any).role, 
+        }
+      }
+    })
   ],
-  pages: {
-    signIn: '/login', // Halaman login custom kita
-  },
+
   callbacks: {
-    // 1. Saat JWT dibuat (Login berhasil)
+    // Callback JWT
     async jwt({ token, user }) {
       if (user) {
-        token.username = (user as any).username // Simpan username ke token
-        token.role = (user as any).role // Simpan role juga biar gampang
+        token.id = user.id
+        token.username = (user as any).username
+        token.role = (user as any).role
       }
       return token
     },
-    // 2. Saat Session dibaca (Setiap reload halaman)
+
+    // Callback Session
     async session({ session, token }) {
-      if (session.user) {
-        // Pindahkan dari token ke session agar bisa dibaca di AuthGuard
-        (session.user as any).username = token.username;
-        (session.user as any).role = token.role; 
+      if (token && session.user) {
+        session.user.id = token.id as string
+        session.user.username = token.username as string
+        session.user.role = token.role as any
       }
       return session
     }
+  },
+  
+  pages: {
+    signIn: "/login",
+    error: "/login",
   }
 })
