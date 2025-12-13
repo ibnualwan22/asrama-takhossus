@@ -18,6 +18,15 @@ export async function saveStaff(formData: FormData) {
   const periodStart = parseInt(formData.get("periodStart") as string) || new Date().getFullYear()
   const periodEnd = formData.get("periodEnd") ? parseInt(formData.get("periodEnd") as string) : null
   const isActive = formData.get("isActive") === "on" // Checkbox
+  let whatsapp = formData.get("whatsapp") as string
+  
+  // Sanitasi nomor WA (Ubah 08... jadi 628...)
+  if (whatsapp) {
+    whatsapp = whatsapp.replace(/\D/g, '') // Hapus karakter non-angka
+    if (whatsapp.startsWith('0')) {
+      whatsapp = '62' + whatsapp.slice(1)
+    }
+  }
 
   // --- LOGIC UPLOAD FOTO (Menggunakan Helper uploadImage) ---
   let photoUrl = null
@@ -47,6 +56,7 @@ export async function saveStaff(formData: FormData) {
     periodStart, // Simpan tahun
     periodEnd,
     isActive: true,
+    whatsapp: whatsapp || null,
   }
 
   // Jika ada URL foto baru, simpan.

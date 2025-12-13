@@ -14,7 +14,6 @@ export default function KaryaModal({ isOpen, onClose, existingData }: Props) {
   const [loading, setLoading] = useState(false)
   const [preview, setPreview] = useState<string | null>(null)
 
-  // Reset form saat modal dibuka/tutup atau data berubah
   useEffect(() => {
     if (existingData) {
       setPreview(existingData.image || null)
@@ -25,7 +24,6 @@ export default function KaryaModal({ isOpen, onClose, existingData }: Props) {
 
   if (!isOpen) return null
 
-  // Handle Preview Image
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) setPreview(URL.createObjectURL(file))
@@ -44,90 +42,100 @@ export default function KaryaModal({ isOpen, onClose, existingData }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
         
-        <div className="flex justify-between items-center p-5 border-b bg-gray-50">
-          <h3 className="font-bold text-lg text-gray-800 flex items-center gap-2">
-            <Book size={20} className="text-blue-600" />
-            {existingData ? "Edit Karya" : "Tambah Karya Baru"}
+        <div className="px-6 py-4 border-b flex justify-between items-center bg-gray-50">
+          <h3 className="font-bold text-lg text-gray-800">
+            {existingData ? 'Edit Karya' : 'Tambah Karya Baru'}
           </h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-            <X size={24} />
-          </button>
+          <button onClick={onClose}><X size={20} className="text-gray-400 hover:text-gray-600" /></button>
         </div>
 
-        <div className="overflow-y-auto p-6">
-          <form action={handleSubmit} className="space-y-4">
-            
-            {existingData && <input type="hidden" name="id" value={existingData.id} />}
+        <form action={handleSubmit} className="p-6 space-y-4 overflow-y-auto">
+          {existingData && <input type="hidden" name="id" value={existingData.id} />}
+          {existingData && <input type="hidden" name="oldImage" value={existingData.image || ''} />}
 
-            <div className="space-y-1">
-              <label className="text-sm font-bold text-gray-700">Nama Kitab / Karya</label>
-              <input 
-                type="text" name="title" required 
-                defaultValue={existingData?.title}
-                className="w-full border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none" 
-                placeholder="Contoh: Terjemah Alfiyah..." 
-              />
-            </div>
+          {/* JUDUL */}
+          <div>
+            <label className="text-sm font-bold text-gray-700 block mb-1">Judul Kitab/Karya</label>
+            <input 
+              name="title" 
+              defaultValue={existingData?.title} 
+              required 
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" 
+              placeholder="Contoh: Risalah Takhossus"
+            />
+          </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-sm font-bold text-gray-700">Penyusun</label>
+          {/* PENULIS & TAHUN (Grid) */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+                <label className="text-sm font-bold text-gray-700 block mb-1">Penyusun</label>
                 <input 
-                  type="text" name="author" required 
-                  defaultValue={existingData?.author}
-                  className="w-full border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none" 
-                  placeholder="Nama Penyusun/Tim" 
+                  name="author" 
+                  defaultValue={existingData?.author} 
+                  required 
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" 
+                  placeholder="Nama / Angkatan"
                 />
-              </div>
-              <div className="space-y-1">
-                <label className="text-sm font-bold text-gray-700">Tahun Terbit</label>
+            </div>
+            <div>
+                <label className="text-sm font-bold text-gray-700 block mb-1">Tahun Terbit</label>
                 <input 
-                  type="number" name="year" required 
-                  defaultValue={existingData?.year || new Date().getFullYear()}
-                  className="w-full border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none" 
+                  name="year" 
+                  type="number"
+                  defaultValue={existingData?.year || new Date().getFullYear()} 
+                  required 
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" 
                 />
-              </div>
             </div>
+          </div>
 
-            <div className="space-y-1">
-              <label className="text-sm font-bold text-gray-700">Deskripsi Singkat</label>
-              <textarea 
-                name="description" rows={3}
-                defaultValue={existingData?.description}
-                className="w-full border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none" 
-                placeholder="Jelaskan isi kitab..." 
-              ></textarea>
-            </div>
+          {/* DESKRIPSI (Textarea) */}
+          <div>
+            <label className="text-sm font-bold text-gray-700 block mb-1">Deskripsi Singkat</label>
+            <textarea 
+              name="description" 
+              rows={3}
+              defaultValue={existingData?.description} 
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" 
+              placeholder="Jelaskan isi kitab secara singkat..."
+            ></textarea>
+          </div>
 
-            {/* Upload Foto */}
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-gray-700">Foto Sampul</label>
-              <div className="flex items-start gap-4 p-3 border border-dashed rounded-lg bg-gray-50">
-                <div className="w-20 h-28 bg-gray-200 rounded border flex-shrink-0 overflow-hidden">
+          {/* FOTO SAMPUL */}
+          <div>
+              <label className="text-sm font-bold text-gray-700 block mb-1">Sampul Buku</label>
+              <div className="flex items-center gap-4 p-3 border border-dashed rounded-lg bg-gray-50">
+                <div className="w-16 h-20 bg-gray-200 rounded overflow-hidden flex-shrink-0 border">
                   {preview ? (
-                    <img src={preview} alt="Preview" className="w-full h-full object-cover" />
+                    <img src={preview} className="w-full h-full object-cover" />
                   ) : (
-                    <div className="flex items-center justify-center h-full text-gray-400 text-xs text-center p-1">No Cover</div>
+                    <div className="w-full h-full flex items-center justify-center text-gray-400"><Book size={20}/></div>
                   )}
                 </div>
                 <div className="flex-1">
-                  <input type="file" name="file" accept="image/*" onChange={handleFileChange} className="text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 mb-2"/>
-                  <p className="text-xs text-gray-400">Format: JPG, PNG. Maks 2MB.</p>
+                   <input 
+                     type="file" 
+                     name="file" 
+                     accept="image/*" 
+                     onChange={handleFileChange} 
+                     className="text-sm w-full file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200"
+                   />
+                   <p className="text-[10px] text-gray-400 mt-1">Format: JPG/PNG, Max 2MB.</p>
                 </div>
               </div>
-            </div>
+          </div>
 
-            <button 
-              type="submit" disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition flex items-center justify-center gap-2 mt-2"
-            >
-              {loading ? "Menyimpan..." : <><Save size={18} /> Simpan Data</>}
-            </button>
-          </form>
-        </div>
+          <button 
+            type="submit" 
+            disabled={loading} 
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 mt-2 transition disabled:bg-blue-300"
+          >
+            {loading ? 'Menyimpan...' : <><Save size={18}/> Simpan Data</>}
+          </button>
+        </form>
       </div>
     </div>
   )

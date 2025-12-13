@@ -89,6 +89,20 @@ export default function StaffModal({ isOpen, onClose, candidates, existingData, 
                 <input type="number" name="order" defaultValue={existingData?.order || 0} className="w-full border rounded-lg p-3 text-sm" />
               </div>
             </div>
+            <div className="space-y-1">
+  <label className="text-xs font-bold text-gray-700">Nomor WhatsApp (Opsional)</label>
+  <div className="relative">
+    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-sm">+62</span>
+    <input 
+      type="text" 
+      name="whatsapp" 
+      defaultValue={existingData?.whatsapp?.replace(/^62/, '') || ""} 
+      className="w-full border rounded-lg p-3 pl-12 text-sm focus:ring-2 focus:ring-blue-500 outline-none" 
+      placeholder="8123xxxx (Langsung terhubung)" 
+    />
+  </div>
+  <p className="text-[10px] text-gray-400">Nomor ini akan menjadi tombol "Hubungi" di halaman depan.</p>
+</div>
 
             {/* --- INPUT MASA BAKTI (BARU) --- */}
             <div className="p-4 bg-blue-50 rounded-xl border border-blue-100 space-y-3">

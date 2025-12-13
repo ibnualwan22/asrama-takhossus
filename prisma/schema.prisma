@@ -109,6 +109,7 @@ model Staff {
 
   photo     String?  
   order     Int      @default(0) 
+  whatsapp  String?
 
   // Relasi: Staff ini bisa jadi Pembimbing di banyak Organisasi
   mentoredOrgs OrgPeriod[] 
@@ -244,4 +245,14 @@ model Karya {
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model Testimonial {
+  id        String   @id @default(uuid())
+  name      String   // Nama Wali Santri / Alumni
+  role      String   // Misal: "Wali Santri Angkatan 5"
+  content   String?  // Text testimoni (opsional jika pakai gambar)
+  image     String   // URL Foto / Screenshot WA
+  isShow    Boolean  @default(true) // Tampilkan di web?
+  createdAt DateTime @default(now())
 }
