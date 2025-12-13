@@ -44,19 +44,19 @@ export default async function LandingPage() {
   return (
     <div className="bg-slate-50 min-h-screen pb-0">
       <Hero />
-      <Stats counts={counts} />
+      {/* <Stats counts={counts} /> */}
       
       {/* 1. ARTIKEL SLIDER (Di bawah Stats) */}
-      <ArticleSlider posts={latestPosts} />
+      {/* <ArticleSlider posts={latestPosts} /> */}
 
-      <ProgramSection />
-      <KaryaSantri karyaList={karyaList} />
-      <PengurusSection staffList={staffList} />
+      {/* <ProgramSection /> */}
+      {/* <KaryaSantri karyaList={karyaList} /> */}
+      {/* <PengurusSection staffList={staffList} /> */}
 
       {/* 2. GALERI PREVIEW (Di bawah Pengurus) */}
-      <GalleryPreview galleries={latestGalleries} />
+      {/* <GalleryPreview galleries={latestGalleries} /> */}
 
-      <TestimonialsSection testimonials={testimonials} />
+      {/* <TestimonialsSection testimonials={testimonials} /> */}
     </div>
   )
 }

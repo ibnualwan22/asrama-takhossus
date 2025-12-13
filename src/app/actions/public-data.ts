@@ -1,6 +1,6 @@
 'use server'
 
-import { PrismaClient } from "@prisma/client"
+import { PrismaClient, StudentStatus } from "@prisma/client"
 
 const prisma = new PrismaClient()
 
@@ -74,5 +74,27 @@ export async function getPostBySlug(slug: string) {
   return await prisma.post.findUnique({
     where: { slug },
     // include: { author: ... } <-- DIHAPUS SEMENTARA karena relasi author belum ada di schema
+  })
+}
+
+export async function getAllMutakhorijinPublic() {
+  // Kita ambil SEMUA data (tanpa limit/page) agar grouping angkatan sempurna
+  return await prisma.student.findMany({
+    where: {
+      OR: [
+        // 1. Yang statusnya MASIH Mutakhorijin
+        { status: StudentStatus.MUTAKHORIJIN },
+        
+        // 2. ATAU yang sudah Alumni, TAPI punya Batch Mutakhorijin
+        { 
+          status: { in: [StudentStatus.ALUMNI_GRADUATED, StudentStatus.ALUMNI_DROPOUT] },
+          mutakhorijinBatch: { not: null }
+        }
+      ]
+    },
+    orderBy: [
+      { mutakhorijinBatch: 'asc' }, // Urutkan Angkatan 1, 2, 3...
+      { name: 'asc' }
+    ]
   })
 }

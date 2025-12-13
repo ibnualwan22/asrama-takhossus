@@ -1,5 +1,5 @@
-import { auth } from "@/auth" // Mengambil session di server
-import Sidebar from "@/components/Sidebar" // Pastikan path ini benar
+import DashboardShell from "@/components/DashboardShell" // Kita pakai lagi Shell ini
+import { auth } from "@/auth"
 import { redirect } from "next/navigation"
 
 export default async function DashboardLayout({
@@ -7,29 +7,23 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
-  // 1. Ambil Session di Server
   const session = await auth()
-  
-  // 2. Cek Login
+
+  // Proteksi sederhana jika belum login
   if (!session) {
     redirect("/login")
   }
 
-  // 3. Siapkan data user (Object) untuk dikirim ke Sidebar
-  // Kita kirim seluruh object user agar Sidebar bisa baca .name dan .role
+  // KUNCI PERBAIKAN:
+  // Kita tidak lagi memecah role/name secara manual.
+  // Kita ambil seluruh object user dari session.
   const userData = session.user 
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
-      {/* 4. Oper data ke Sidebar lewat props 'user' */}
-      <Sidebar user={userData} /> 
-
-      <div className="flex-1 flex flex-col md:pl-64 transition-all duration-300">
-          {/* Main Content */}
-          <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50/50">
-             {children}
-          </main>
-      </div>
-    </div>
+    // Kita panggil DashboardShell (agar responsive),
+    // TAPI kita kirim props 'user' (bukan userRole/userName lagi)
+    <DashboardShell user={userData}>
+      {children}
+    </DashboardShell>
   )
 }
