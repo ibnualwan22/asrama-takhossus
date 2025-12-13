@@ -7,62 +7,64 @@ export default function Hero() {
   return (
     <section className="relative h-screen min-h-[600px] flex items-center justify-center overflow-hidden">
       
-      {/* 1. BACKGROUND IMAGE (Ganti '/hero-bg.jpg' dengan foto asrama yang bagus) */}
+      {/* BACKGROUND TETAP SAMA */}
       <div 
-        className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat bg-fixed"
-        style={{ backgroundImage: "url('https://images.unsplash.com/photo-1596495577886-d920f1fb7238?q=80&w=2074&auto=format&fit=crop')" }} // Placeholder Asrama
+        className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat bg-fixed animate-in fade-in duration-1000"
+        style={{ backgroundImage: "url('https://res.cloudinary.com/devfcmzyj/image/upload/v1765636182/IMG-20240421-WA0034_znpem8.jpg')" }} 
       >
-        {/* Overlay Gelap agar tulisan terbaca */}
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-900/70 via-slate-900/60 to-slate-900/90" />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary-950/90 via-primary-900/80 to-primary-800/60" />
       </div>
 
-      {/* 2. KONTEN TENGAH */}
-      <div className="relative z-10 container mx-auto px-4 text-center text-white space-y-8 animate-in fade-in zoom-in duration-1000">
+      {/* KONTEN TENGAH - KITA NAIKKAN SEDIKIT */}
+      {/* Ubah 'mt-16' jadi '-mt-10' atau 'pb-20' untuk menaikkan posisi visual */}
+      <div className="relative z-10 container mx-auto px-4 text-center text-white flex flex-col items-center justify-center gap-6 -mt-10 md:-mt-16">
         
-        {/* Badge / Hashtag */}
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-blue-300 font-bold text-sm tracking-widest uppercase mb-4 shadow-lg">
-          <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+        {/* Badge */}
+        <div className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-white/10 backdrop-blur-md border border-secondary-400/30 text-secondary-300 font-bold text-xs md:text-sm tracking-[0.2em] uppercase shadow-2xl">
+          <span className="w-2 h-2 rounded-full bg-secondary-500 animate-pulse shadow-[0_0_10px_#eab308]"></span>
           #TampilBeda
         </div>
 
-        {/* Judul Besar */}
-        <div className="space-y-2">
-          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight leading-tight">
-            Asrama <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">Takhossus</span>
+        {/* Judul */}
+        <div className="space-y-2 md:space-y-4 max-w-5xl">
+          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight leading-[1.1] drop-shadow-2xl">
+            Asrama <span className="text-transparent bg-clip-text bg-gradient-to-r from-secondary-300 to-secondary-500">Takhossus</span>
           </h1>
-          <p className="text-xl md:text-2xl font-light text-slate-300 tracking-wide">
+          <p className="text-xl sm:text-2xl md:text-3xl font-light text-primary-100 tracking-wider">
             Pasca Amtsilati — Jepara
           </p>
         </div>
 
-        {/* Slogan (Request no. 13) */}
-        <div className="max-w-2xl mx-auto border-t border-white/10 pt-8 mt-8">
-            <p className="text-lg md:text-xl font-medium italic text-slate-200">
+        {/* Slogan */}
+        <div className="max-w-2xl mx-auto py-6 border-t border-white/10 mt-4">
+            <p className="text-lg md:text-2xl font-serif italic text-white/90">
               "Beramal Ilmiyyah, Berilmu Amaliyyah"
-            </p>
-            <p className="mt-4 text-slate-400 text-sm leading-relaxed">
-              Mencetak generasi santri yang tidak hanya pandai membaca kitab kuning, 
-              tetapi juga siap terjun ke masyarakat dengan kompetensi modern dan akhlak mulia.
             </p>
         </div>
 
-        {/* Tombol CTA (Call to Action) */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+        {/* Tombol CTA */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto">
           <Link 
             href="/program" 
-            className="group relative px-8 py-4 bg-blue-600 hover:bg-blue-700 rounded-full font-bold text-white transition-all hover:scale-105 shadow-[0_0_20px_rgba(37,99,235,0.5)] flex items-center gap-2"
+            className="w-full sm:w-auto px-8 py-4 bg-secondary-500 hover:bg-secondary-400 text-primary-950 rounded-full font-bold text-lg transition-all hover:scale-105 shadow-[0_0_30px_rgba(234,179,8,0.3)] flex items-center justify-center gap-2"
           >
-            Lihat Program <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+            Lihat Program <ArrowRight size={20} />
           </Link>
           
           <Link 
             href="/karya" 
-            className="px-8 py-4 bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 rounded-full font-bold text-white transition-all hover:scale-105 flex items-center gap-2"
+            className="w-full sm:w-auto px-8 py-4 bg-white/5 hover:bg-white/20 border border-white/30 rounded-full font-bold text-lg text-white transition-all hover:scale-105 flex items-center justify-center gap-2 backdrop-blur-sm"
           >
             <BookOpen size={20} /> Karya Santri
           </Link>
         </div>
 
+      </div>
+
+      {/* Scroll Indicator */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 animate-bounce text-secondary-400 flex flex-col items-center gap-2 opacity-80">
+        <span className="text-[10px] font-bold tracking-widest uppercase">Scroll Down</span>
+        <div className="w-0.5 h-8 bg-gradient-to-b from-secondary-400 to-transparent"></div>
       </div>
     </section>
   )

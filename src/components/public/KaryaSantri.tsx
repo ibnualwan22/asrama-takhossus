@@ -16,21 +16,22 @@ type Karya = {
 export default function KaryaSantri({ karyaList }: { karyaList: Karya[] }) {
   
   // Warna-warna background untuk cover buku jika tidak ada gambar
-  const bgColors = [
-    "bg-blue-700",
-    "bg-emerald-700",
-    "bg-rose-700",
-    "bg-amber-700",
-    "bg-purple-700",
-    "bg-cyan-700",
+ const bgColors = [
+    "bg-primary-700",   // Hijau
+    "bg-secondary-600", // Emas Gelap
+    "bg-sky-700",       // Biru Langit
+    "bg-rose-700",      // Merah
+    "bg-amber-700",     // Coklat
+    "bg-purple-700",    // Ungu
   ]
 
   return (
-    <section id="karya" className="py-24 bg-slate-900 text-white overflow-hidden relative">
+    // PERUBAHAN DISINI: bg-primary-950 (Hijau Tua Gelap)
+    <section id="karya" className="py-24 bg-primary-950 text-white overflow-hidden relative border-t border-primary-900">
       
       {/* Background Pattern Abstrak */}
-      <div className="absolute inset-0 opacity-10" 
-           style={{ backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)', backgroundSize: '30px 30px' }}>
+      <div className="absolute inset-0 opacity-5" 
+           style={{ backgroundImage: 'radial-gradient(#facc15 1px, transparent 1px)', backgroundSize: '40px 40px' }}>
       </div>
 
       <div className="container mx-auto px-4 relative z-10">
@@ -38,18 +39,18 @@ export default function KaryaSantri({ karyaList }: { karyaList: Karya[] }) {
         {/* Header Section */}
         <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
            <div className="max-w-2xl">
-              <span className="text-blue-400 font-bold tracking-widest uppercase text-sm mb-3 block">
+              <span className="text-secondary-400 font-bold tracking-widest uppercase text-sm mb-3 block">
                 Literasi & Riset
               </span>
               <h2 className="text-3xl md:text-5xl font-extrabold leading-tight">
                 Karya Tulis & <br/> 
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-secondary-300 to-primary-300">
                   Khazanah Keilmuan
                 </span>
               </h2>
            </div>
            
-           <Link href="/karya" className="group px-6 py-3 rounded-full border border-white/20 hover:bg-white hover:text-slate-900 transition-all font-bold flex items-center gap-2">
+           <Link href="/karya" className="group px-6 py-3 rounded-full border border-white/20 hover:bg-white hover:text-primary-900 transition-all font-bold flex items-center gap-2">
               Lihat Perpustakaan <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform"/>
            </Link>
         </div>
