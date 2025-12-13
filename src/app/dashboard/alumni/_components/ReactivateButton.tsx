@@ -1,17 +1,35 @@
 'use client'
 
-import { RotateCcw } from 'lucide-react'
+import { RotateCcw, Lock } from 'lucide-react'
 import { reactivateStudent } from '@/app/actions/alumni'
 
-export default function ReactivateButton({ id, name }: { id: string, name: string }) {
+// Perbaikan: Tambahkan canMutate ke tipe props
+export default function ReactivateButton({ 
+  id, 
+  name, 
+  canMutate 
+}: { 
+  id: string, 
+  name: string, 
+  canMutate: boolean 
+}) {
+  
   const handleReactivate = async () => {
     const confirmMsg = `PERINGATAN!\n\nAnda akan mengembalikan "${name}" menjadi SANTRI AKTIF.\nData tahun keluar/lulus akan dihapus.\n\nLanjutkan?`
     
     if (confirm(confirmMsg)) {
       const res = await reactivateStudent(id)
-      if (res.success) alert(res.message)
-      else alert(res.message)
+      alert(res.message)
     }
+  }
+
+  // Jika tidak punya izin, tampilkan ikon gembok
+  if (!canMutate) {
+    return (
+      <button disabled className="p-2 text-gray-300 cursor-not-allowed" title="Anda tidak memiliki izin mutasi">
+        <Lock size={18} />
+      </button>
+    )
   }
 
   return (

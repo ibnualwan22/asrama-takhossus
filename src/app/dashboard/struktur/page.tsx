@@ -3,33 +3,37 @@ import StructureClient from "./_components/StructureClient"
 
 const prisma = new PrismaClient()
 
-// Menerima parameter ?year=2024 dari URL
-export default async function StructurePage({ searchParams }: { searchParams: { year?: string } }) {
+// PERUBAHAN: searchParams sekarang adalah Promise
+export default async function StructurePage({ 
+  searchParams 
+}: { 
+  searchParams: Promise<{ year?: string }> 
+}) {
   const currentYear = new Date().getFullYear()
-  const selectedYear = searchParams.year ? parseInt(searchParams.year) : currentYear
+  
+  // 1. AWAIT DULU searchParams-nya
+  const resolvedParams = await searchParams
+  const selectedYear = resolvedParams.year ? parseInt(resolvedParams.year) : currentYear
 
-  // 1. Ambil Data Staff SESUAI TAHUN YANG DIPILIH
-  // Logic: Ambil staff yang periodenya mencakup tahun yang dipilih
+  // 2. Ambil Data Staff SESUAI TAHUN YANG DIPILIH
   const staffList = await prisma.staff.findMany({
     where: {
       OR: [
-        { periodStart: selectedYear }, // Mulai tahun ini
-        // Atau mulai sebelum tahun ini, TAPI belum selesai (masih aktif)
+        { periodStart: selectedYear }, 
         { AND: [{ periodStart: { lt: selectedYear } }, { periodEnd: null }] },
-        // Atau mulai sebelum tahun ini, DAN selesai setelah tahun ini
         { AND: [{ periodStart: { lt: selectedYear } }, { periodEnd: { gte: selectedYear } }] }
       ]
     },
     include: { student: true },
     orderBy: [
-        { isActive: 'desc' }, // Yang aktif di atas
-        { order: 'asc' }      // Lalu urutkan sesuai nomor urut
+        { isActive: 'desc' }, 
+        { order: 'asc' }      
     ]
   })
 
-  // 2. Ambil Kandidat Mutakhorijin (Untuk Dropdown Add)
+  // 3. Ambil Kandidat Mutakhorijin (Untuk Dropdown Add)
   const candidates = await prisma.student.findMany({
-    where: { status: 'MUTAKHORIJIN' }, // Pastikan enum string sesuai prisma anda
+    where: { status: 'MUTAKHORIJIN' }, 
     select: { 
         id: true, 
         name: true, 
@@ -41,7 +45,6 @@ export default async function StructurePage({ searchParams }: { searchParams: { 
 
   return (
     <div className="space-y-6">
-       {/* Kirim data ke Client Component */}
       <StructureClient 
          staffList={staffList} 
          candidates={candidates} 

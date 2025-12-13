@@ -1,22 +1,22 @@
-// src/app/actions/student.ts
 'use server'
 
 import { PrismaClient, StudentStatus } from "@prisma/client"
 import { revalidatePath } from "next/cache"
 import { uploadImage } from "./upload"
+import { requirePermission } from "@/lib/auth-guard" // Pastikan path ini benar
 
 const prisma = new PrismaClient()
 
-// Tipe Data dari API SIGAP (Sesuaikan field yg tersedia)
+// --- TIPE DATA ---
 type SigapStudent = {
   id: string
   name: string
   nis: string
   activeDormitory: string
-  gender?: string // Kita asumsikan ada field ini
+  gender?: string 
   formalClass: string
   dormitoryRoom: string
-  ttl: string // Format: "Tempat, 8 Juli 2009"
+  ttl: string 
   parrentPhone: string
   fatherName: string
   motherName: string
@@ -29,69 +29,75 @@ type SyncState = {
   count?: number
 } | null
 
+// --- 1. SINKRONISASI DATA (DIPROTEKSI) ---
 export async function syncStudents(prevState: SyncState): Promise<SyncState> {
+  // A. CEK IZIN (RBAC)
+  // Jika user tidak punya izin 'student.sync', kode akan berhenti & throw error
   try {
-    // 1. Fetch Data dari API SIGAP
-    // Limit kita set besar untuk mengambil banyak data sekaligus
+    await requirePermission("student.sync") 
+  } catch (error: any) {
+    return { success: false, message: error.message }
+  }
+
+  try {
+    // B. FETCH DATA DARI API SIGAP
     const response = await fetch('https://sigap.amtsilatipusat.com/api/student?limit=5000', {
-      cache: 'no-store' // Pastikan selalu dapat data terbaru
+      cache: 'no-store' 
     })
 
-    if (!response.ok) throw new Error("Gagal mengambil data dari SIGAP")
+    if (!response.ok) throw new Error("Gagal mengambil data dari server SIGAP")
 
     const json = await response.json()
     const apiData: SigapStudent[] = json.data
 
     let processedCount = 0
 
-    // 2. Proses setiap data
+    // C. PROSES DATA
     for (const item of apiData) {
-      // 3. FILTERING KETAT
-      // Pastikan Active Dormitory = TAKHOSSUS (Case Insensitive jaga-jaga)
-      // Pastikan Gender = PUTRA
-      const isTakhossus = item.activeDormitory?.toUpperCase() === 'TAKHOSSUS'
-      const isPutra = item.gender?.toUpperCase() === 'PUTRA'
+      // Filter: Hanya Asrama TAKHOSSUS & Putra
+      const isTakhossus = item.activeDormitory?.toUpperCase()?.includes('TAKHOSSUS')
+      const isPutra = item.gender?.toUpperCase() === 'PUTRA' // Hapus baris ini jika API tidak kirim gender
 
-      // Jika tidak memenuhi syarat, skip
-      // Catatan: Jika field gender tidak ada di respon API, hapus bagian `&& isPutra`
       if (!isTakhossus || !isPutra) continue; 
 
-      // 4. Parsing Data
-      
-      // A. Parsing Tahun Masuk dari NIS (Contoh: A21... -> 2021)
-      // Logika: Ambil 2 digit setelah huruf pertama
-      let entryYear = new Date().getFullYear() // Default tahun sekarang
-      const nisYearStr = item.nis.match(/[A-Z](\d{2})/)?.[1] // Regex ambil 2 angka setelah huruf
+      // Parsing Tahun Masuk dari NIS (Contoh: A21... -> 2021)
+      let entryYear = new Date().getFullYear()
+      const nisYearStr = item.nis.match(/[A-Z](\d{2})/)?.[1]
       if (nisYearStr) {
         entryYear = 2000 + parseInt(nisYearStr)
       }
 
-      // B. Parsing TTL (Contoh: "Serang, 8 Juli 2009")
+      // Parsing TTL yang Lebih Aman
       let placeOfBirth = ''
-      let dateOfBirth = ''
-      if (item.ttl && item.ttl.includes(',')) {
-        const parts = item.ttl.split(',')
-        placeOfBirth = parts[0].trim()
-        dateOfBirth = parts.slice(1).join(',').trim() // Sisa bagiannya adalah tanggal
+      let dateOfBirth: Date | null = null
+      
+      if (item.ttl) {
+        if (item.ttl.includes(',')) {
+          const parts = item.ttl.split(',')
+          placeOfBirth = parts[0].trim()
+          // Coba simpan string tanggalnya, atau convert jika perlu
+          // Untuk simplifikasi kita simpan raw string dulu atau null jika logic date complex
+          // dateOfBirth = new Date(parts.slice(1).join(',').trim()) 
+        } else {
+          placeOfBirth = item.ttl // Fallback
+        }
       }
 
-      // 5. Simpan ke Database (Upsert)
+      // Upsert ke Database
       await prisma.student.upsert({
-        where: { nis: item.nis }, // Cek berdasarkan NIS
+        where: { nis: item.nis },
         update: {
-          // Update data terbaru jika ada perubahan di SIGAP
           name: item.name,
           activeDormitory: item.activeDormitory,
           dormitoryRoom: item.dormitoryRoom,
           formalClass: item.formalClass,
           placeOfBirth: placeOfBirth,
-          dateOfBirth: dateOfBirth, // Simpan string dulu
-          address: item.regency,
+          // dateOfBirth: dateOfBirth, // Aktifkan jika tipe di schema DateTime
+          address: item.regency, // Kita ambil Kabupaten saja sesuai request
           parentPhone: item.parrentPhone,
           fatherName: item.fatherName,
           motherName: item.motherName,
           sigapId: item.id,
-          // Jangan update status/foto jika sudah diset manual di sistem kita
         },
         create: {
           nis: item.nis,
@@ -100,14 +106,13 @@ export async function syncStudents(prevState: SyncState): Promise<SyncState> {
           dormitoryRoom: item.dormitoryRoom,
           formalClass: item.formalClass,
           placeOfBirth: placeOfBirth,
-          dateOfBirth: dateOfBirth,
           address: item.regency,
           parentPhone: item.parrentPhone,
           fatherName: item.fatherName,
           motherName: item.motherName,
           sigapId: item.id,
           entryYear: entryYear,
-          status: StudentStatus.ACTIVE, // Default Aktif
+          status: StudentStatus.ACTIVE, 
         }
       })
 
@@ -117,29 +122,29 @@ export async function syncStudents(prevState: SyncState): Promise<SyncState> {
     revalidatePath('/dashboard/students')
     return { 
       success: true, 
-      message: `Berhasil sinkronisasi. ${processedCount} santri Takhossus Putra diperbarui.`,
+      message: `Sukses! ${processedCount} santri berhasil disinkronkan.`,
       count: processedCount
     }
 
   } catch (error) {
     console.error("Sync Error:", error)
-    return { success: false, message: 'Terjadi kesalahan saat sinkronisasi API.' }
+    return { success: false, message: 'Terjadi kesalahan saat menghubungi server SIGAP.' }
   }
 }
 
-// Fungsi bantu untuk mengambil data (Server Component Only)
+// --- 2. GET DATA (PAGINATION & SEARCH) ---
 export async function getStudents(query: string = '', page: number = 1) {
   const pageSize = 20
   const skip = (page - 1) * pageSize
 
-  // UPDATE: Tambahkan status: StudentStatus.ACTIVE ke dalam filter
   const whereCondition = {
-    status: StudentStatus.ACTIVE, // <--- INI KUNCINYA
+    status: StudentStatus.ACTIVE, // Hanya Santri Aktif
     AND: query ? {
       OR: [
         { name: { contains: query, mode: 'insensitive' as const } },
         { nis: { contains: query, mode: 'insensitive' as const } },
         { address: { contains: query, mode: 'insensitive' as const } },
+        { formalClass: { contains: query, mode: 'insensitive' as const } },
       ]
     } : undefined
   }
@@ -147,7 +152,10 @@ export async function getStudents(query: string = '', page: number = 1) {
   const [data, total] = await prisma.$transaction([
     prisma.student.findMany({
       where: whereCondition,
-      orderBy: { name: 'asc' },
+      orderBy: [
+        { activeDormitory: 'asc' }, // Urut Asrama
+        { name: 'asc' }             // Lalu Nama
+      ],
       skip,
       take: pageSize,
     }),
@@ -157,20 +165,7 @@ export async function getStudents(query: string = '', page: number = 1) {
   return { data, total, totalPages: Math.ceil(total / pageSize) }
 }
 
-export async function updateStudentPhoto(studentId: string, photoUrl: string) {
-  try {
-    await prisma.student.update({
-      where: { id: studentId },
-      data: { photo: photoUrl }
-    })
-    
-    revalidatePath('/dashboard/students')
-    return { success: true, message: 'Foto santri berhasil diperbarui!' }
-  } catch (error) {
-    console.error(error)
-    return { success: false, message: 'Gagal update foto.' }
-  }
-}
+// --- 3. UPLOAD FOTO ---
 export async function uploadStudentPhotoAction(prevState: any, formData: FormData) {
   const studentId = formData.get('studentId') as string
   const file = formData.get('file') as File
@@ -180,20 +175,22 @@ export async function uploadStudentPhotoAction(prevState: any, formData: FormDat
   }
 
   try {
-    // 1. Upload ke Cloudinary (Server Side)
     const uploadRes = await uploadImage(formData)
 
     if (!uploadRes.success) {
       return { success: false, message: uploadRes.message }
     }
 
-    // 2. Update Database dengan URL baru
     await prisma.student.update({
       where: { id: studentId },
       data: { photo: uploadRes.url }
     })
 
+    // Revalidate semua path terkait
     revalidatePath('/dashboard/students')
+    revalidatePath('/dashboard/mutakhorijin')
+    revalidatePath('/dashboard/alumni')
+    
     return { success: true, message: "Foto berhasil diperbarui!" }
 
   } catch (error) {

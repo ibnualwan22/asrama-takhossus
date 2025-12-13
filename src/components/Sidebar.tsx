@@ -52,7 +52,8 @@ const MENU_GROUPS: SidebarGroup[] = [
     title: "Kesantrian",
     items: [
       { label: "Data Santri", href: "/dashboard/students", icon: Users },
-      { label: "Mutakhorijin", href: "/dashboard/mutakhorijin", icon: GraduationCap }
+      { label: "Mutakhorijin", href: "/dashboard/mutakhorijin", icon: GraduationCap },
+      { label: "Alumni", href: "/dashboard/alumni", icon: GraduationCap },
     ]
   },
   {
@@ -69,7 +70,6 @@ const MENU_GROUPS: SidebarGroup[] = [
     title: "Konten",
     items: [
       { label: "Prestasi / Achievements", href: "/dashboard/achievements", icon: Trophy },
-      { label: "Alumni", href: "/dashboard/alumni", icon: GraduationCap },
       { label: "Gallery", href: "/dashboard/gallery", icon: ImageIcon }
     ]
   },

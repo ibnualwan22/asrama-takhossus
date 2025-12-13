@@ -2,10 +2,11 @@
 
 import { PrismaClient, StudentStatus } from "@prisma/client"
 import { revalidatePath } from "next/cache"
+import { requirePermission } from "@/lib/auth-guard" // <--- Import Guard
 
 const prisma = new PrismaClient()
 
-// 1. GET DATA (Dengan Pagination)
+// 1. GET DATA (Read Only - Public/Auth user)
 export async function getMutakhorijin(query: string = '', page: number = 1) {
   const pageSize = 20
   const skip = (page - 1) * pageSize
@@ -14,14 +15,14 @@ export async function getMutakhorijin(query: string = '', page: number = 1) {
     status: StudentStatus.MUTAKHORIJIN,
     OR: query ? [
       { name: { contains: query, mode: 'insensitive' as const } },
-      { address: { contains: query, mode: 'insensitive' as const } },
+      { nis: { contains: query, mode: 'insensitive' as const } },
     ] : undefined
   }
 
   const [data, total] = await prisma.$transaction([
     prisma.student.findMany({
       where: whereCondition,
-      orderBy: { graduationYear: 'desc' }, // Sort by Angkatan Mutakhorijin (disimpan di graduationYear atau mutakhorijinBatch sesuai update terakhir)
+      orderBy: { mutakhorijinBatch: 'desc' }, // Urutkan angkatan terbaru
       skip,
       take: pageSize,
     }),
@@ -31,36 +32,49 @@ export async function getMutakhorijin(query: string = '', page: number = 1) {
   return { data, total, totalPages: Math.ceil(total / pageSize) }
 }
 
-// 2. UPDATE DATA
+// 2. FINALIZE ALUMNI (Mutakhorijin -> Alumni Lulus)
+export async function graduateMutakhorijin(prevState: any, formData: FormData) {
+  // --- CEK IZIN MUTASI ---
+  try { await requirePermission("student.mutate") } catch (e: any) { return { message: e.message } }
+
+  const studentId = formData.get('studentId') as string
+  const graduationYear = formData.get('graduationYear')
+
+  if (!studentId || !graduationYear) return { message: "Tahun lulus wajib diisi" }
+
+  try {
+    await prisma.student.update({
+      where: { id: studentId },
+      data: {
+        status: StudentStatus.ALUMNI_GRADUATED,
+        graduationYear: Number(graduationYear)
+      }
+    })
+    
+    revalidatePath('/dashboard/mutakhorijin')
+    revalidatePath('/dashboard/alumni')
+    return { success: true, message: "Santri resmi menjadi Alumni!" }
+  } catch (error) {
+    return { message: "Gagal memproses data." }
+  }
+}
+
+// 3. EDIT DATA (Opsional, jika ingin edit angkatan/nama)
 export async function updateMutakhorijin(prevState: any, formData: FormData) {
+  // --- CEK IZIN UPDATE ---
+  try { await requirePermission("student.update") } catch (e: any) { return { message: e.message } }
+
   const id = formData.get('id') as string
-  const name = formData.get('name') as string
-  const nis = formData.get('nis') as string
-  const entryYear = Number(formData.get('entryYear'))
   const mutakhorijinBatch = Number(formData.get('mutakhorijinBatch'))
-  const address = formData.get('address') as string
 
   try {
     await prisma.student.update({
       where: { id },
-      data: {
-        name, nis, entryYear, mutakhorijinBatch, address
-      }
+      data: { mutakhorijinBatch }
     })
     revalidatePath('/dashboard/mutakhorijin')
-    return { success: true, message: 'Data mutakhorijin diperbarui!' }
+    return { success: true, message: "Data berhasil diupdate." }
   } catch (error) {
-    return { success: false, message: 'Gagal update data.' }
-  }
-}
-
-// 3. HAPUS PERMANEN (Delete)
-export async function deleteMutakhorijin(id: string) {
-  try {
-    await prisma.student.delete({ where: { id } })
-    revalidatePath('/dashboard/mutakhorijin')
-    return { success: true, message: 'Data dihapus permanen.' }
-  } catch (error) {
-    return { success: false, message: 'Gagal menghapus data.' }
+    return { message: "Gagal update." }
   }
 }

@@ -10,51 +10,60 @@ async function main() {
   // 1. Buat Permissions Dasar (ACL)
   // Format: resource.action
   const permissionsData = [
-    // Dashboard
+    // --- Dashboard ---
     { action: 'dashboard.view', description: 'Melihat Dashboard' },
     
-    // User Management
+    // --- User & Role Management ---
     { action: 'user.create', description: 'Membuat User Admin' },
     { action: 'user.read', description: 'Melihat List User' },
     { action: 'user.update', description: 'Edit User' },
     { action: 'user.delete', description: 'Hapus User' },
-    
-    // Role Management
     { action: 'role.manage', description: 'Mengatur Role & Permission' },
 
-    // Student (Santri)
+    // --- Student (Santri & Alumni) ---
     { action: 'student.sync', description: 'Sinkronisasi data SIGAP' },
-    { action: 'student.read', description: 'Melihat data santri' },
-    { action: 'student.update', description: 'Edit data tambahan santri' },
-    { action: 'student.graduate', description: 'Meluluskan/Alumni santri' },
+    { action: 'student.read', description: 'Melihat data santri & alumni' },
+    
+    // [BARU] Dibutuhkan untuk fitur "Tambah Manual Alumni"
+    { action: 'student.create', description: 'Menambah data santri/alumni manual' }, 
+    
+    { action: 'student.update', description: 'Edit data profil santri/alumni' },
+    
+    // [BARU] Menggantikan 'student.graduate'. 
+    // Digunakan untuk: Meluluskan, Memboyongkan, dan Mengaktifkan Kembali (Reactivate)
+    { action: 'student.mutate', description: 'Mutasi Status (Lulus/Boyong/Aktifkan)' },
 
-    // Content (Artikel, Organisasi, Pimpinan)
+    // --- Structure (Pengurus & Organisasi) ---
+    // [BARU] Persiapan untuk mengamankan halaman Organisasi & Struktur nanti
+    { action: 'structure.manage', description: 'Mengelola Struktur Pengurus & Organisasi' },
+
+    // --- Content (Artikel, Prestasi) ---
     { action: 'content.create', description: 'Buat Konten' },
     { action: 'content.update', description: 'Edit Konten' },
     { action: 'content.delete', description: 'Hapus Konten' },
 
-    // Gallery
+    // --- Gallery ---
     { action: 'gallery.manage', description: 'Kelola Galeri' },
   ]
 
-  // Upsert permissions (biar gak error kalau dijalankan 2x)
+  // Upsert permissions
   for (const perm of permissionsData) {
     await prisma.permission.upsert({
       where: { action: perm.action },
-      update: {},
+      update: { description: perm.description }, // Update deskripsi jika ada perubahan
       create: perm,
     })
   }
 
-  // 2. Buat Role Super Admin
-  // Ambil semua permission yang baru dibuat
+  // 2. Buat Role Super Admin (Otomatis dapat semua permission diatas)
   const allPermissions = await prisma.permission.findMany()
 
   const superAdminRole = await prisma.role.upsert({
     where: { name: 'Super Admin' },
     update: {
       permissions: {
-        connect: allPermissions.map((p) => ({ id: p.id })),
+        set: [], // Reset dulu biar bersih
+        connect: allPermissions.map((p) => ({ id: p.id })), // Hubungkan ulang semua
       },
     },
     create: {
@@ -67,11 +76,14 @@ async function main() {
   })
 
   // 3. Buat User Super Admin
-  const hashedPassword = await bcrypt.hash('12345678', 10) // Password default
+  const hashedPassword = await bcrypt.hash('12345678', 10) 
 
   const superAdmin = await prisma.user.upsert({
     where: { username: 'superadmin' },
-    update: {},
+    update: {
+        // Update roleId untuk memastikan dia tetap Super Admin meskipun ID role berubah
+        roleId: superAdminRole.id 
+    },
     create: {
       username: 'superadmin',
       name: 'IT Asrama Takhossus',
@@ -92,4 +104,4 @@ main()
     console.error(e)
     await prisma.$disconnect()
     process.exit(1)
-  })
+  })  

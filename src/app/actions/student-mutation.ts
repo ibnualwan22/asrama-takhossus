@@ -2,14 +2,23 @@
 
 import { PrismaClient, StudentStatus } from "@prisma/client"
 import { revalidatePath } from "next/cache"
+import { requirePermission } from "@/lib/auth-guard" // <--- IMPORT INI
 
 const prisma = new PrismaClient()
 
-// 1. MUTASI DARI SANTRI AKTIF
+// 1. MUTASI DARI SANTRI AKTIF (Lulus / Boyong)
 export async function mutateStudent(prevState: any, formData: FormData) {
+  // --- CEK IZIN ---
+  try {
+    await requirePermission("student.mutate") 
+  } catch (error: any) {
+    return { success: false, message: error.message }
+  }
+  // ----------------
+
   const studentId = formData.get('studentId') as string
   const statusType = formData.get('statusType') as string
-  const inputNumber = formData.get('inputNumber') // Angka dari form
+  const inputNumber = formData.get('inputNumber')
 
   if (!studentId || !statusType) return { success: false, message: 'Data tidak lengkap.' }
 
@@ -18,7 +27,6 @@ export async function mutateStudent(prevState: any, formData: FormData) {
 
     if (statusType === 'MUTAKHORIJIN') {
       // KASUS A: JADI MUTAKHORIJIN
-      // Simpan Angkatan, Tahun Keluar (graduationYear) NULL dulu karena masih di asrama
       await prisma.student.update({
         where: { id: studentId },
         data: { 
@@ -29,7 +37,6 @@ export async function mutateStudent(prevState: any, formData: FormData) {
       })
     } else {
       // KASUS B: LANGSUNG BOYONG (DROPOUT)
-      // Simpan Tahun Keluar, Angkatan Mutakhorijin NULL
       await prisma.student.update({
         where: { id: studentId },
         data: { 
@@ -52,16 +59,22 @@ export async function mutateStudent(prevState: any, formData: FormData) {
 
 // 2. MUTASI DARI MUTAKHORIJIN KE ALUMNI (BOYONG)
 export async function graduateMutakhorijin(prevState: any, formData: FormData) {
+  // --- CEK IZIN JUGA DISINI ---
+  try {
+    await requirePermission("student.mutate")
+  } catch (error: any) {
+    return { success: false, message: error.message }
+  }
+  // ----------------------------
+
   const studentId = formData.get('studentId') as string
-  const exitYear = formData.get('exitYear') // Tahun Keluar
+  const exitYear = formData.get('exitYear') 
 
   if (!studentId || !exitYear) {
     return { success: false, message: 'Tahun keluar wajib diisi.' }
   }
 
   try {
-    // Status berubah jadi ALUMNI_GRADUATED
-    // Kita UPDATE graduationYear (Tahun Keluar), tapi JANGAN HAPUS mutakhorijinBatch
     await prisma.student.update({
       where: { id: studentId },
       data: { 

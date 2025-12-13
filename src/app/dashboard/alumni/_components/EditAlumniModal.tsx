@@ -2,9 +2,10 @@
 
 import { useState, useActionState, useEffect } from 'react'
 import { updateAlumni } from '@/app/actions/alumni'
-import { Pencil, X, Save, Loader2 } from 'lucide-react'
+import { Pencil, X, Save, Loader2, Lock } from 'lucide-react'
 
-export default function EditAlumniModal({ alumni }: { alumni: any }) {
+// Tambahkan prop permission
+export default function EditAlumniModal({ alumni, canUpdate }: { alumni: any, canUpdate: boolean }) {
   const [isOpen, setIsOpen] = useState(false)
   const [state, formAction, isPending] = useActionState(updateAlumni, null)
 
@@ -12,8 +13,19 @@ export default function EditAlumniModal({ alumni }: { alumni: any }) {
     if (state?.success) {
       setIsOpen(false)
       alert(state.message)
+    } else if (state?.message) {
+      alert(state.message)
     }
   }, [state])
+
+  // JIKA TIDAK PUNYA IZIN
+  if (!canUpdate) {
+    return (
+      <button disabled className="p-2 text-gray-300 cursor-not-allowed" title="Anda tidak memiliki izin edit">
+        <Lock size={18} />
+      </button>
+    )
+  }
 
   return (
     <>
@@ -67,8 +79,8 @@ export default function EditAlumniModal({ alumni }: { alumni: any }) {
                 <textarea name="address" rows={2} defaultValue={alumni.address || ''} className="w-full px-3 py-2 border rounded-lg"></textarea>
               </div>
 
-              <button type="submit" disabled={isPending} className="w-full bg-orange-600 text-white py-2 rounded-lg font-bold flex justify-center gap-2">
-                 {isPending ? <Loader2 className="animate-spin" /> : <Save size={18} />} Simpan Perubahan
+              <button type="submit" disabled={isPending} className="w-full bg-orange-600 text-white py-2 rounded-lg font-bold flex justify-center gap-2 items-center">
+                 {isPending ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />} Simpan Perubahan
               </button>
             </form>
           </div>
