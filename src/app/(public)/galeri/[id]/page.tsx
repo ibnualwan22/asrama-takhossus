@@ -3,7 +3,12 @@
 import { getGalleryDetail } from "@/app/actions/public-data"
 import LightboxClient from "./_components/LightboxClient" // Kita buat komponen client terpisah
 
-export default async function GalleryDetailPage({ params }: { params: Promise<{ id: string }> }) {
+type Props = {
+  params: Promise<{ id: string }>
+}
+
+export default async function GalleryDashboardDetail({ params }: Props) {
+  // PERBAIKAN 2: Await params sebelum digunakan
   const { id } = await params
   const gallery = await getGalleryDetail(id)
 
