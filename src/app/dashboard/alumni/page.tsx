@@ -5,6 +5,7 @@ import AlumniDetailModal from "./_components/AlumniDetailModal"
 import ReactivateButton from "./_components/ReactivateButton"
 import { hasPermission } from "@/lib/auth-guard" // Import Security
 import { Search } from "lucide-react"
+import Pagination from "./_components/Pagination"
 
 export const metadata = {
   title: "Data Alumni",
@@ -130,7 +131,11 @@ export default async function AlumniPage({
           </table>
         </div>
       </div>
-
+              <Pagination
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      query={query}
+                    />
     </div>
   )
 }

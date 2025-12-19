@@ -2,6 +2,7 @@ import { getMutakhorijin } from "@/app/actions/mutakhorijin"
 import GraduateButton from "./_components/GraduateButton"
 import { hasPermission } from "@/lib/auth-guard" // Import Security
 import { Search, GraduationCap } from "lucide-react"
+import Pagination from "./_components/Pagination"
 
 export default async function MutakhorijinPage({ 
   searchParams 
@@ -70,7 +71,12 @@ export default async function MutakhorijinPage({
             </tbody>
           </table>
         </div>
-      </div>      
+      </div>
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        query={query}
+      />
     </div>
   )
 }
