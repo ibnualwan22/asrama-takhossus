@@ -38,7 +38,7 @@ export default function Hero() {
         {/* Slogan */}
         <div className="max-w-2xl mx-auto py-6 border-t border-white/10 mt-4">
             <p className="text-lg md:text-2xl font-serif italic text-white/90">
-              "Beramal Ilmiyyah, Berilmu Amaliyyah"
+              "Berilmu Amaliyyah, Beramal Ilmiyyah"
             </p>
         </div>
 

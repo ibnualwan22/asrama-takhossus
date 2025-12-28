@@ -33,7 +33,7 @@ export default function Navbar() {
       name: 'Akademik',
       href: '#',
       children: [
-        { name: 'Program Unggulan', href: '/#program' },
+        { name: 'Program Unggulan', href: '/program' },
         { name: 'Organisasi Santri', href: '/organisasi' },
         { name: 'Jadwal Kegiatan', href: '/kegiatan' },
       ],
